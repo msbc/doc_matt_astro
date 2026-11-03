@@ -1,0 +1,637 @@
+/* =====================================================================
+   components.css — the individual building blocks:
+   wordmark + PSF star, nav pills, theme toggle, viewscreen (photo
+   banner), sections, cards, readouts, timeline, publications,
+   section indicator, footer, error panel.
+   ===================================================================== */
+
+/* ---------- Wordmark: "Doc★ Matt Astro" ---------- */
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.25rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* The PSF star that replaces the "." after "Doc".
+   The span is period-sized and sits on the baseline; the SVG inside is
+   much bigger and centered on it, so the spikes overhang the letters. */
+.psf {
+  display: inline-block;
+  position: relative;
+  width: 0.3em;
+  height: 0.3em;
+  margin: 0 0.1em 0 0.06em;
+  color: var(--accent);
+}
+/* Fallback dot, shown only until JavaScript draws the star. */
+.psf::before {
+  content: "";
+  position: absolute;
+  inset: 0.05em;
+  border-radius: 50%;
+  background: currentColor;
+}
+.psf--drawn::before { display: none; }
+
+.psf svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.6em;
+  height: 2.6em;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  pointer-events: none;
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+
+/* A tiny "twinkle" when the wordmark is hovered or focused. */
+.wordmark:hover .psf svg,
+.wordmark:focus-visible .psf svg {
+  transform: translate(-50%, -50%) scale(1.18) rotate(6deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wordmark:hover .psf svg,
+  .wordmark:focus-visible .psf svg { transform: translate(-50%, -50%); }
+}
+
+/* ---------- Navigation pills in the rail ---------- */
+.rail a {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-height: 3.25rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--pill-bg, var(--panel-2));
+  color: var(--on-panel);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: filter var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+/* Rotate through the LCARS colors. */
+.rail li:nth-child(4n+1) a { --pill-bg: var(--panel-2); }
+.rail li:nth-child(4n+2) a { --pill-bg: var(--panel-3); }
+.rail li:nth-child(4n+3) a { --pill-bg: var(--panel-4); }
+.rail li:nth-child(4n+4) a { --pill-bg: var(--panel-3); }
+
+.rail a:hover { filter: brightness(1.12) saturate(1.1); }
+
+/* The page you're on: light-blue fill, plus a black notch so it isn't color-only. */
+.rail li a[aria-current="page"] {
+  --pill-bg: var(--accent-fill);
+  box-shadow: inset 0.5rem 0 0 var(--ink);
+}
+
+.pill-code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  margin-right: auto;   /* pushes the code to the left edge */
+  align-self: flex-start;
+}
+
+@media (max-width: 45em) {
+  .rail a {
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+  .pill-code { display: none; }
+  .rail li:first-child a { border-radius: 999px 0 0 999px; }
+  .rail li:last-child a  { border-radius: 0 999px 999px 0; }
+}
+
+/* ---------- Theme toggle (a control-panel switch with an LED) ---------- */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  margin-left: auto;
+  padding: 0.4rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel-4);
+  color: var(--on-panel);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter var(--dur) var(--ease);
+}
+.toggle:hover { filter: brightness(1.1); }
+
+.toggle-led {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  background: #3A3D48;
+  box-shadow: inset 0 0 0 1px #000;
+  transition: background-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.toggle[aria-pressed="true"] .toggle-led {
+  background: var(--s-accent-dark);
+  box-shadow: inset 0 0 0 1px #000, 0 0 8px var(--s-accent-dark);
+}
+
+/* ---------- Viewscreen: the framed space photo at the top of each page ---------- */
+.viewscreen {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: 14rem;
+  padding-top: 3.5rem;   /* keeps the text panel clear of the credit strip */
+  overflow: hidden;
+  border-radius: 1.75rem 0 0 1.75rem;
+  border-right: 0.6rem solid var(--panel-2);
+  background: #03050A;
+}
+.viewscreen--hero { min-height: clamp(22rem, 62vh, 38rem); }
+
+/* Each photo is a "layer" filling the viewscreen. When the photo rotates,
+   the new layer fades in on top of the old one, which is then removed. */
+.viewscreen-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transition: opacity var(--dur-fade) ease;
+}
+.viewscreen-layer.is-entering { opacity: 0; }
+
+.viewscreen-media,
+.viewscreen-media img,
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.viewscreen-media img { object-fit: cover; }
+
+/* Placeholder "photo" made from CSS gradients until real images are added.
+   The three --neb colors are the nebula glows; variants 2 and 3 swap them. */
+.starfield {
+  --neb-1: rgba(140, 70, 210, 0.38);
+  --neb-2: rgba(255, 130, 60, 0.28);
+  --neb-3: rgba(60, 200, 220, 0.18);
+  --deep:  #0B1530;
+  background:
+    radial-gradient(1.2px 1.2px at 23px 41px, #fff, transparent),
+    radial-gradient(1px 1px at 97px 13px, #cfe0ff, transparent),
+    radial-gradient(1px 1px at 151px 120px, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 60px 150px, #ffe6c8, transparent),
+    radial-gradient(1px 1px at 40px 90px, #fff, transparent),
+    radial-gradient(1px 1px at 200px 60px, #dfe9ff, transparent),
+    radial-gradient(ellipse 55% 60% at 28% 65%, var(--neb-1), transparent 70%),
+    radial-gradient(ellipse 45% 50% at 78% 30%, var(--neb-2), transparent 70%),
+    radial-gradient(ellipse 40% 35% at 60% 80%, var(--neb-3), transparent 70%),
+    radial-gradient(ellipse at 50% 40%, var(--deep), #03050A 75%);
+  background-size:
+    173px 173px, 173px 173px, 173px 173px,
+    241px 241px, 241px 241px, 241px 241px,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%;
+}
+.starfield--2 {   /* teal and gold, like a Hubble palette */
+  --neb-1: rgba(30, 170, 160, 0.30);
+  --neb-2: rgba(230, 180, 60, 0.26);
+  --neb-3: rgba(90, 120, 255, 0.22);
+  --deep:  #08182A;
+}
+.starfield--3 {   /* red and blue, like a Rubin color composite */
+  --neb-1: rgba(220, 60, 90, 0.30);
+  --neb-2: rgba(70, 110, 255, 0.28);
+  --neb-3: rgba(255, 200, 150, 0.14);
+  --deep:  #120C24;
+}
+
+/* Bright foreground stars (with the same PSF as the logo). */
+.field-star {
+  position: absolute;
+  color: #EAF2FF;
+  transform: translate(-50%, -50%);
+}
+.field-star svg { width: 100%; height: 100%; overflow: visible; display: block; }
+
+/* The dark text panel that sits on the photo. */
+.viewscreen-panel {
+  margin: 1rem;
+  padding: 1rem 1.25rem;
+  max-width: 40rem;
+  background: var(--scrim);
+  border-left: 0.6rem solid var(--panel-1);
+}
+.viewscreen-panel h1 { margin: 0.1em 0 0.2em; font-size: clamp(2rem, 1.4rem + 2.5vw, 3.25rem); }
+.viewscreen-panel p:last-child { margin-bottom: 0; }
+.viewscreen--hero .viewscreen-panel { max-width: 46rem; }
+.viewscreen--hero .viewscreen-panel h1 { font-size: clamp(2.5rem, 1.5rem + 4vw, 4.75rem); letter-spacing: 0.06em; }
+
+.kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Strip along the top of the viewscreen: slideshow button (left), credit (right). */
+.viewscreen-top {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.rotator-btn {
+  min-height: 2.75rem;
+  padding: 0.2rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--scrim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.rotator-btn:hover { border-color: var(--accent); box-shadow: 0 0 10px rgba(var(--s-accent-dark-rgb), 0.4); }
+
+/* Image credit. */
+.credit {
+  margin: 0 0 0 auto;   /* pushed to the right */
+  padding: 0.2rem 0.6rem;
+  background: var(--scrim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+/* On phones, leave room above the text panel so the credit can't cover it. */
+@media (max-width: 45em) {
+  .viewscreen { padding-top: 4rem; }
+  .viewscreen--hero { padding-top: 7rem; }   /* button + credit can take two rows */
+}
+
+/* ---------- Sections ---------- */
+.section {
+  margin-top: 3rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.section-head h2 { margin: 0; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); }
+
+.section-code {
+  padding: 0.1rem 0.6rem 0.1rem 0.8rem;
+  border-radius: 999px 0 0 999px;
+  background: var(--panel-1);
+  color: var(--on-panel);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* Hazard stripes trailing after each section title. */
+.section-head::after {
+  content: "";
+  flex: 1;
+  min-width: 2rem;
+  height: 0.55rem;
+  border-radius: 0 999px 999px 0;
+  background: repeating-linear-gradient(-45deg,
+    var(--hazard-a) 0 8px, var(--hazard-b) 8px 16px);
+  opacity: 0.85;
+}
+
+.section-intro { color: var(--text-muted); }
+
+/* ---------- Cards ---------- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 0.4rem solid var(--card-tab, var(--panel-2));
+  box-shadow: var(--glow);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.cards > li:nth-child(4n+2) .card { --card-tab: var(--panel-3); }
+.cards > li:nth-child(4n+3) .card { --card-tab: var(--panel-4); }
+.cards > li:nth-child(4n+4) .card { --card-tab: var(--panel-1); }
+
+.card:hover,
+.card:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--glow-strong);
+}
+
+.card h3 { font-size: 1.35rem; margin-bottom: 0.4em; }
+.card p { margin-bottom: 0.75em; }
+.card > :last-child { margin-bottom: 0; }
+
+/* A card with a link: the whole card is clickable. */
+.card-link { color: inherit; text-decoration: none; }
+.card-link::after { content: ""; position: absolute; inset: 0; }
+.card-link:hover { text-decoration: underline; }
+.card-link:focus-visible { outline: none; }   /* the card shows focus instead */
+.card:has(.card-link:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+.meta {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Little mono chips for tags/skills. */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: auto 0 0;
+  padding: 0.25rem 0 0;
+  list-style: none;
+}
+.tags li {
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* Before → after readout on case-study cards. */
+.speedup {
+  display: grid;
+  grid-template-columns: max-content 1fr;   /* label | value */
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.35rem solid var(--panel-1);
+  background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.speedup dt { color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem; }
+.speedup dd { margin: 0; }
+.speedup .gain { grid-column: 1 / -1; font-family: var(--font-display); font-size: 1.5rem; color: var(--accent); }
+
+/* ---------- Readouts (stats) ---------- */
+.readouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+.readout {
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 0.5rem solid var(--panel-3);
+  box-shadow: var(--glow);
+}
+.readout dt {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.readout dd { margin: 0; }
+.readout-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  line-height: 1.15;
+  color: var(--accent);
+}
+.readout-note { display: block; font-size: 0.9rem; color: var(--text-muted); }
+
+/* ---------- Timeline ---------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+  border-left: 2px solid var(--line);
+}
+.timeline li { position: relative; padding-bottom: 1.5rem; }
+.timeline li::before {      /* square marker on the line */
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem - 0.45rem - 1px);
+  top: 0.35rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  background: var(--panel-1);
+}
+.timeline h3 { font-size: 1.3rem; margin: 0.15rem 0 0.2rem; }
+.timeline p { margin-bottom: 0.25rem; }
+
+/* ---------- Publications ---------- */
+.pub-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  margin-bottom: 1rem;
+}
+.seg-btn {
+  min-height: 2.75rem;
+  padding: 0.3rem 1rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.seg-btn:first-child { border-radius: 999px 0 0 999px; }
+.seg-btn:nth-child(2) { border-radius: 0 999px 999px 0; }
+.seg-btn:hover { border-color: var(--accent); }
+.seg-btn[aria-pressed="true"] { background: var(--accent-fill); color: #000; border-color: var(--accent-fill); }
+.pub-count { margin: 0 0 0 0.75rem; }
+
+.pubs { list-style: none; margin: 0; padding: 0; }
+.pub {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.pub-year {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+.pub-title { margin: 0 0 0.2rem; font-weight: 600; }
+.pub-authors { margin: 0 0 0.2rem; color: var(--text-muted); }
+.pub-authors strong { color: var(--text); }
+.pub-venue { margin: 0 0 0.4rem; font-style: italic; }
+.pub-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; list-style: none; }
+.pub-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.pub-links a:hover { border-color: var(--accent); box-shadow: var(--glow-strong); }
+@media (pointer: coarse) { .pub-links a { min-height: 2.75rem; } }
+@media (max-width: 30em) { .pub { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Section indicator (fixed, bottom-right) ---------- */
+.indicator {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.indicator-chip {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: min(22rem, calc(100vw - 2rem));
+  min-height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px 0 0 999px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--glow);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.indicator-chip:hover,
+.indicator-chip[aria-expanded="true"] { border-color: var(--accent); box-shadow: var(--glow-strong); }
+
+.indicator-code {
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem 0 0.9rem;
+  background: var(--panel-1);
+  color: var(--on-panel);
+}
+.indicator-label {
+  display: flex;
+  align-items: center;
+  padding: 0 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.indicator-list {
+  order: -1;   /* pops up above the chip */
+  margin-bottom: 0.5rem;
+  min-width: 15rem;
+  max-width: calc(100vw - 2rem);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  box-shadow: var(--glow-strong);
+}
+.indicator-list ol { list-style: none; margin: 0; padding: 0.35rem; }
+.indicator-list a {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.75rem;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color var(--dur) var(--ease);
+}
+.indicator-list a:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.indicator-list a span { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+/* Current section: filled and notched, so it's not marked by color alone. */
+.indicator-list a[aria-current="location"] {
+  background: var(--accent-fill);
+  color: #000;
+  box-shadow: inset 0.4rem 0 0 var(--ink);
+}
+.indicator-list a[aria-current="location"] span { color: #000; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 4.5rem;   /* room for the section indicator chip */
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.site-footer p { margin: 0; }
+.site-footer ul { display: flex; flex-wrap: wrap; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+
+/* ---------- Content error panel (shown when the page's JSON is broken) ---------- */
+.content-error {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #D4002A;
+  border-left-width: 0.75rem;
+  background: var(--surface);
+}
+.content-error h2 { color: #D4002A; }
+.content-error pre { white-space: pre-wrap; font-family: var(--font-mono); font-size: 0.85rem; }
+
+/* ---------- No-JavaScript notice ---------- */
+.noscript-panel {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-left: 0.6rem solid var(--panel-1);
+  background: var(--surface);
+}

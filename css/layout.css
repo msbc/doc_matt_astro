@@ -1,0 +1,161 @@
+/* =====================================================================
+   layout.css — the LCARS page frame.
+
+   Desktop:                      Phone (under 45em ≈ 720px):
+   ┌───────┬──────────────────┐  ┌──────────────────┐
+   │ elbow │ ═══ bar ═══      │  │ ═══ top bar ═══  │
+   │       │ header           │  │ header           │
+   ├───────┼──────────────────┤  │ [pill][pill]...  │
+   │ rail  │ main content     │  │ main content     │
+   │ pills │                  │  │ footer           │
+   │       │ footer           │  └──────────────────┘
+   └───────┴──────────────────┘
+   ===================================================================== */
+
+.frame {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "elbow header"
+    "rail  main"
+    "rail  footer";
+  row-gap: var(--gap);
+  min-height: 100vh;
+  padding: 1rem 1rem 0 1rem;
+}
+
+/* ---------- The elbow: orange corner block ---------- */
+.elbow {
+  grid-area: elbow;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-height: 6rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--panel-1);
+  color: var(--on-panel);
+  border-top-left-radius: var(--radius-elbow);
+}
+
+/* The small concave curve where the elbow meets the header bar.
+   It's a square with a transparent circle cut out of one corner. */
+.elbow::after {
+  content: "";
+  position: absolute;
+  top: var(--bar-h);
+  left: 100%;
+  width: var(--fillet);
+  height: var(--fillet);
+  background: radial-gradient(circle at 100% 100%,
+              transparent calc(var(--fillet) - 0.5px), var(--panel-1) var(--fillet));
+}
+
+.elbow-code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Header (masthead) ---------- */
+.masthead {
+  grid-area: header;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding: calc(var(--bar-h) + 0.75rem) 0 0.75rem calc(var(--fillet) + 1rem);
+}
+
+/* The horizontal LCARS bar, split into colored segments. */
+.masthead::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--bar-h);
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(to right,
+    var(--panel-1) 0 58%,
+    transparent 58% calc(58% + var(--gap)),
+    var(--panel-2) calc(58% + var(--gap)) 80%,
+    transparent 80% calc(80% + var(--gap)),
+    var(--panel-3) calc(80% + var(--gap)) 100%);
+}
+
+.masthead-sub {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ---------- The navigation rail ---------- */
+.rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* The long colored block that fills the rest of the rail, ending in a curve. */
+.rail-fill {
+  flex: 1;
+  min-height: 4rem;
+  background: var(--panel-1);
+  border-bottom-left-radius: var(--radius-elbow);
+}
+
+/* ---------- Main content and footer ---------- */
+main {
+  grid-area: main;
+  min-width: 0;   /* lets long words wrap instead of widening the page */
+  padding: 1.25rem 0 5rem calc(var(--fillet) + 1rem);
+}
+
+.site-footer {
+  grid-area: footer;
+  padding: 1rem 0 1.5rem calc(var(--fillet) + 1rem);
+}
+
+/* ---------- Phone layout ---------- */
+@media (max-width: 45em) {
+  .frame {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "elbow" "header" "rail" "main" "footer";
+    padding: 0.75rem 0.75rem 0;
+  }
+
+  /* The elbow becomes a simple rounded top bar. */
+  .elbow {
+    min-height: var(--bar-h);
+    padding: 0;
+    border-radius: 999px;
+  }
+  .elbow::after,
+  .elbow-code,
+  .masthead::before,
+  .rail-fill { display: none; }
+
+  .masthead { padding: 0.5rem 0; }
+
+  /* Pills wrap into rows instead of a column. */
+  .rail ul { flex-direction: row; flex-wrap: wrap; }
+  .rail li { flex: 1 1 auto; }
+
+  main, .site-footer { padding-left: 0; }
+}

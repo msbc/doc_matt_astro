@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About — Doc. Matt Astro</title>
+  <meta name="description" content="About Matt Coleman: background, education and interests.">
+
+  <!-- 1. Apply a saved light/dark choice before anything is drawn (must come first). -->
+  <script src="js/theme-init.js"></script>
+
+  <!-- 2. Fonts: the only thing loaded from outside this site. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&display=swap">
+
+  <!-- 3. Site styles (tokens first: they define the colors the others use). -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- 4. Scripts. "defer" = run after the HTML is read, in this order. -->
+  <script src="js/site-data.js" defer></script>
+  <script src="js/psf-star.js" defer></script>
+  <script src="js/render.js" defer></script>
+  <script src="js/rotator.js" defer></script>
+  <script src="js/scrollspy.js" defer></script>
+  <script src="js/theme-toggle.js" defer></script>
+</head>
+<body>
+<!-- ================================================================
+     PAGE CONTENT — EDIT TEXT BELOW
+     This block is JSON: keep the "quotes", and put a comma between
+     items but NOT after the last one. See README.md for every field.
+     ================================================================ -->
+<script type="application/json" id="page-data">
+{
+  "title": "About",
+  "kicker": "Sector 01 · Personnel file",
+  "intro": "Computational astrophysicist and HPC specialist.",
+  "image": "rotate",
+  "sections": [
+    {
+      "id": "bio",
+      "label": "Bio",
+      "type": "text",
+      "paragraphs": [
+        "Placeholder bio — replace with your own. I'm a computational astrophysicist who works where astrophysics meets high-performance computing: writing, running, and speeding up large simulations.",
+        "These days I'm a *Performance Tuning Analyst*, helping researchers make their codes run faster on modern clusters. See the [Computing](computing.html) page for more."
+      ]
+    },
+    {
+      "id": "path",
+      "label": "Flight Path",
+      "type": "timeline",
+      "items": [
+        {
+          "when": "Present",
+          "title": "Performance Tuning Analyst",
+          "where": "Your institution",
+          "text": "Profiling and optimizing research software on HPC systems."
+        },
+        {
+          "when": "Year – Year",
+          "title": "Postdoctoral Researcher",
+          "where": "Institution",
+          "text": "Placeholder: what you worked on."
+        },
+        {
+          "when": "Year",
+          "title": "Ph.D., Astrophysics",
+          "where": "University",
+          "text": "Thesis: *Placeholder thesis title*."
+        }
+      ]
+    },
+    {
+      "id": "interests",
+      "label": "Interests",
+      "type": "cards",
+      "items": [
+        {
+          "title": "Astrophysical simulation",
+          "text": "Placeholder: numerical methods and the physics they capture.",
+          "tags": [
+            "Hydrodynamics",
+            "MHD"
+          ]
+        },
+        {
+          "title": "Performance engineering",
+          "text": "Placeholder: making scientific code fast and scalable.",
+          "tags": [
+            "Profiling",
+            "GPUs"
+          ]
+        },
+        {
+          "title": "Astrophotography",
+          "text": "Placeholder: the pictures that make it all worth it.",
+          "tags": [
+            "HST",
+            "JWST",
+            "Rubin"
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+<!-- ======================= END OF PAGE CONTENT ===================== -->
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="frame">
+    <!-- LCARS corner block (decoration only) -->
+    <div class="elbow" aria-hidden="true"><span class="elbow-code">MC-01</span></div>
+
+    <header class="masthead">
+      <a class="wordmark" href="index.html">Doc<span class="sr-only">.</span><span class="psf" aria-hidden="true"></span> Matt Astro</a>
+      <p class="masthead-sub">Computational Astrophysics · High-Performance Computing</p>
+      <button id="theme-toggle" class="toggle" type="button" aria-pressed="false" hidden>
+        <span class="toggle-led" aria-hidden="true"></span>Dark mode
+      </button>
+    </header>
+
+    <!-- Site navigation. To add a page, copy one <li> line in EVERY .html file. -->
+    <nav class="rail" aria-label="Site">
+      <ul>
+        <li><a href="index.html"><span class="pill-code">00</span>Home</a></li>
+        <li><a href="about.html" aria-current="page"><span class="pill-code">01</span>About</a></li>
+        <li><a href="research.html"><span class="pill-code">02</span>Research</a></li>
+        <li><a href="publications.html"><span class="pill-code">03</span>Publications</a></li>
+        <li><a href="computing.html"><span class="pill-code">04</span>Computing</a></li>
+        <li><a href="cv/Matt_Coleman_CV.pdf">CV <span aria-hidden="true">↗</span><span class="sr-only">(PDF)</span></a></li>
+      </ul>
+      <div class="rail-fill" aria-hidden="true"></div>
+    </nav>
+
+    <main id="main" tabindex="-1">
+      <noscript>
+        <div class="noscript-panel">
+          <p>This site draws its pages with JavaScript, which is turned off in your browser.
+          You can still download the <a href="cv/Matt_Coleman_CV.pdf">CV (PDF)</a>.</p>
+        </div>
+      </noscript>
+      <!-- Everything else in <main> is built by js/render.js from the JSON above. -->
+    </main>
+
+    <footer class="site-footer">
+      <p>© Matt Coleman</p>
+    </footer>
+  </div>
+</body>
+</html>

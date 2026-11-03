@@ -1,0 +1,41 @@
+# Ignore all images for now
+img/
+
+# ---------------------------------------------------------------------
+# Image masters: kept locally (and in Dropbox), never committed.
+#   - img/originals/ holds the source TIFFs/PNGs (~7 GB).
+#   - *_native.jpg are the full-resolution JPGs tools/make_sizes.py keeps
+#     as its source (~700 MB; some exceed GitHub's 100 MB file limit).
+# The resized *_2powNN.jpg files next to them ARE committed — the site
+# serves those.
+# ---------------------------------------------------------------------
+img/originals/
+*_native.jpg
+
+# Huge raw/editing formats, wherever they end up
+*.tif
+*.tiff
+*.psd
+*.psb
+*.fits
+*.fit
+*.fz
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# macOS / editors
+.DS_Store
+._*
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local preview / scratch output
+*.log
+.cache/
+tmp/

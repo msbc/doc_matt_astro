@@ -1,0 +1,187 @@
+/* =====================================================================
+   tokens.css — every color, font, size and speed used on the site.
+
+   HOW THIS FILE WORKS
+   1. "Primitives" are raw colors with descriptive names.
+   2. "Semantic" tokens say what a color is FOR (background, text, ...).
+      The other CSS files only ever use the semantic tokens, so changing
+      a theme means editing this file and nothing else.
+   3. There are three LCARS "styles", taken from thelcars.com/themes:
+        Lower Decks (orange), Lower Decks PADD (blue), and Picard.
+      js/theme-init.js picks one at random on every page load and sets
+      <html data-style="...">. Each style only fills in the panel colors
+      and the --s-* accent variables; the light/dark blocks below read them.
+      With no JavaScript the default (Lower Decks orange) is used.
+   4. Light theme is the default. Dark theme kicks in when
+        a) the visitor's system is set to dark (and they haven't picked
+           light with the toggle), or
+        b) the visitor picked dark with the toggle.
+      The two dark blocks below must stay identical — edit both together.
+   ===================================================================== */
+
+:root {
+  /* ---------- Primitives (raw colors) ---------- */
+  /* Lower Decks (orange) — names and values from thelcars.com */
+  --ld-october-sunset: #FF4400;
+  --ld-orange:         #FF7700;
+  --ld-harvest-gold:   #FFAA44;
+  --ld-honey:          #FFCC99;
+  --ld-butter:         #FFEECC;
+  --ld-daybreak:       #FF9911;
+  /* Lower Decks PADD (blue) */
+  --pd-alpha-blue:     #5588EE;
+  --pd-beta-blue:      #7799DD;
+  --pd-arctic-snow:    #99CCFF;
+  --pd-arctic-ice:     #66CCFF;
+  --pd-radioactive:    #88EEFF;
+  --pd-night-cloud:    #344470;
+  --pd-night-rain:     #455580;
+  --pd-sunset-red:     #FF3300;
+  /* Picard */
+  --pc-blue:           #37A6D1;
+  --pc-bright-blue:    #41C4F7;
+  --pc-dark-blue:      #1C3C55;
+  --pc-medium-dark-blue: #2A7193;
+  --pc-light-gray:     #9EA5BA;
+  --pc-ghost-gray:     #D2D5DF;
+  --pc-orange-red:     #E7442A;
+  --pc-pale-orange-red: #FF977B;
+  --ink:          #14161A;   /* near-black */
+  --void:         #05070B;   /* deep-space black */
+  --paper:        #EEE9E0;   /* warm "console paper" */
+
+  /* ---------- Fonts (loaded from Google Fonts in each page's <head>) ---------- */
+  --font-display: "Antonio", "Arial Narrow", sans-serif;     /* LCARS labels */
+  --font-body:    "IBM Plex Sans", system-ui, sans-serif;    /* paragraphs */
+  --font-mono:    "IBM Plex Mono", ui-monospace, monospace;  /* readouts */
+
+  /* ---------- Sizes ---------- */
+  --rail-w:  11rem;    /* width of the left navigation rail */
+  --bar-h:   1.25rem;  /* thickness of the LCARS header bar */
+  --fillet:  1.5rem;   /* radius of the inner elbow curve */
+  --gap:     0.375rem; /* the thin black gaps between LCARS blocks */
+  --radius-elbow: 2.75rem;
+  --measure: 68ch;     /* comfortable max line length for paragraphs */
+
+  /* ---------- Motion ---------- */
+  --dur:  160ms;                       /* hover/focus transition length */
+  --dur-fade: 1.2s;                    /* crossfade between rotating photos */
+  --ease: cubic-bezier(.2, .7, .3, 1);
+
+  /* ---------- Style: Lower Decks (default) ---------- */
+  --panel-1:     var(--ld-orange);        /* LCARS block fills ... */
+  --panel-2:     var(--ld-harvest-gold);
+  --panel-3:     var(--ld-honey);
+  --panel-4:     var(--ld-october-sunset);
+  --hazard-a:    var(--ld-orange);
+  --s-accent-light:     #9A3F00;          /* darkened to be readable on paper */
+  --s-accent-light-rgb: 154, 63, 0;
+  --s-link-light:       #8A3800;
+  --s-fill-light:       var(--ld-butter); /* "selected" fill, black text */
+  --s-accent-dark:      var(--ld-daybreak);
+  --s-accent-dark-rgb:  255, 153, 17;
+
+  /* ---------- Semantic tokens: LIGHT theme ("daylight control room") ---------- */
+  color-scheme: light;
+  --bg:          var(--paper);
+  --surface:     #F8F5EF;  /* cards and panels */
+  --text:        var(--ink);
+  --text-muted:  #4A4F57;
+  --accent:      var(--s-accent-light);    /* headings' accents, readout values */
+  --link:        var(--s-link-light);
+  --line:        rgba(var(--s-accent-light-rgb), 0.45);  /* hairline borders */
+  --on-panel:    #000;                     /* ... always with black text */
+  --accent-fill: var(--s-fill-light);      /* "selected" fill, black text */
+  --glow:        none;                     /* no glow in daylight — it reads as blur */
+  --glow-strong: 0 0 0 1px var(--accent);
+  --grid-line:   rgba(var(--s-accent-light-rgb), 0.5);
+  --grid-opacity: 0.12;
+  --hazard-b:    var(--ink);
+  --scrim:       rgba(3, 5, 9, 0.88);      /* backing behind text on photos */
+  --focus:       #0047D6;
+}
+
+/* ---------- Style: Lower Decks PADD (blue) ---------- */
+:root[data-style="lower-decks-padd"] {
+  --panel-1:     var(--pd-alpha-blue);
+  --panel-2:     var(--pd-beta-blue);
+  --panel-3:     var(--pd-arctic-snow);
+  --panel-4:     var(--pd-radioactive);
+  --hazard-a:    var(--pd-sunset-red);
+  --s-accent-light:     var(--pd-night-cloud);
+  --s-accent-light-rgb: 52, 68, 112;
+  --s-link-light:       var(--pd-night-rain);
+  --s-fill-light:       var(--pd-arctic-snow);
+  --s-accent-dark:      var(--pd-arctic-ice);
+  --s-accent-dark-rgb:  102, 204, 255;
+}
+
+/* ---------- Style: Picard ---------- */
+:root[data-style="picard"] {
+  --panel-1:     var(--pc-blue);
+  --panel-2:     var(--pc-pale-orange-red);
+  --panel-3:     var(--pc-light-gray);
+  --panel-4:     var(--pc-ghost-gray);
+  --hazard-a:    var(--pc-orange-red);
+  --s-accent-light:     var(--pc-medium-dark-blue);
+  --s-accent-light-rgb: 42, 113, 147;
+  --s-link-light:       var(--pc-dark-blue);
+  --s-fill-light:       var(--pc-bright-blue);
+  --s-accent-dark:      var(--pc-bright-blue);
+  --s-accent-dark-rgb:  65, 196, 247;
+}
+
+/* ---------- DARK theme ("night watch"), automatic ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg:          var(--void);
+    --surface:     #0B1018;
+    --text:        #E8EEF5;
+    --text-muted:  #9AA7B8;
+    --accent:      var(--s-accent-dark);
+    --link:        var(--s-accent-dark);
+    --line:        rgba(var(--s-accent-dark-rgb), 0.35);
+    --accent-fill: var(--s-accent-dark);
+    --glow:        0 0 10px rgba(var(--s-accent-dark-rgb), 0.18);
+    --glow-strong: 0 0 0 1px var(--s-accent-dark), 0 0 18px rgba(var(--s-accent-dark-rgb), 0.45);
+    --grid-line:   rgba(var(--s-accent-dark-rgb), 0.7);
+    --grid-opacity: 0.22;
+    --hazard-b:    transparent;
+    --focus:       var(--s-accent-dark);
+  }
+}
+
+/* ---------- DARK theme, chosen with the toggle (keep in sync with above) ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:          var(--void);
+  --surface:     #0B1018;
+  --text:        #E8EEF5;
+  --text-muted:  #9AA7B8;
+  --accent:      var(--s-accent-dark);
+  --link:        var(--s-accent-dark);
+  --line:        rgba(var(--s-accent-dark-rgb), 0.35);
+  --accent-fill: var(--s-accent-dark);
+  --glow:        0 0 10px rgba(var(--s-accent-dark-rgb), 0.18);
+  --glow-strong: 0 0 0 1px var(--s-accent-dark), 0 0 18px rgba(var(--s-accent-dark-rgb), 0.45);
+  --grid-line:   rgba(var(--s-accent-dark-rgb), 0.7);
+  --grid-opacity: 0.22;
+  --hazard-b:    transparent;
+  --focus:       var(--s-accent-dark);
+}
+
+/* Areas that sit on top of a space photo are always dark, in both themes. */
+.dark-island {
+  --text:       #E8EEF5;
+  --text-muted: #B5C0CE;
+  --accent:     var(--s-accent-dark);
+  --link:       var(--s-accent-dark);
+  --focus:      var(--s-accent-dark);
+  color: var(--text);
+}
+
+/* Visitors who ask their system for less motion get instant changes. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur: 0s; --dur-fade: 0s; }
+}
