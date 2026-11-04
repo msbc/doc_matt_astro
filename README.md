@@ -66,7 +66,17 @@ This file holds the wordmark text, the footer links, the image registry, and the
 
 The header wordmark and the navigation are plain HTML, so they still work with JavaScript off. To rename a nav item or add a page, edit the `<nav class="rail">` list in **every** `.html` file. To add a page, copy an existing one, then change its `<title>`, its JSON, and its `aria-current="page"` link.
 
-## Add a real space photo
+## Background photos (`js/images.js`)
+
+The photos in `img/tier1/`, `img/tier2/`, … are registered in `js/images.js`, which every page loads right after `site-data.js`. It adds to `SITE.images` and replaces the placeholder `SITE.rotation`. Each entry points at the `_2powNN.jpg` ladder from `tools/make_sizes.py` (`ladder: [[n, pixels], …]`, real widths, because the `NN` in the name is rounded) and the browser picks the rung that fits the screen.
+
+`tools/make_image_registry.py` writes that file from the folders, reading credit, license and title from each photo's embedded metadata (needs `exiftool`). It refuses to overwrite a hand-edited `images.js` unless you pass `--force`. After running it, check:
+- **`credit: "TODO"`, `weight: 0`**: the photo has no embedded credit, so it is never shown. Fill in credit and license, then raise the weight.
+- **Credits that end after the last complete name**: ESA's embedded credits are cut off at 32 characters, so the generator drops the half-cut last name (marked with a comment). The `sourceUrl` release page has the full credit.
+- **`psf` rotation** is `0` everywhere; the telescope is guessed from the credit.
+- **Weights** default to 2 for `tier1` and 1 for `tier2`.
+
+## Add a real space photo (the older `-1280` / `-2560` way)
 
 1. **Check the license on the image's release page.**
    - NASA-produced images are generally public domain, but credit is expected.
