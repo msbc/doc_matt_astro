@@ -310,16 +310,15 @@
   font-size: 0.85rem;
 }
 
-/* Hazard stripes trailing after each section title. */
+/* Thin rule trailing after each section title, fading out to the right. */
 .section-head::after {
   content: "";
   flex: 1;
   min-width: 2rem;
-  height: 0.55rem;
-  border-radius: 0 999px 999px 0;
-  background: repeating-linear-gradient(-45deg,
-    var(--hazard-a) 0 8px, var(--hazard-b) 8px 16px);
-  opacity: 0.85;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--hazard-a), transparent);
+  opacity: 0.6;
 }
 
 .section-intro { color: var(--text-muted); }
