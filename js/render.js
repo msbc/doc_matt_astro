@@ -307,7 +307,23 @@
   // One full-size photo layer: a real image, or a placeholder starfield.
   function mediaLayer(image) {
     var layer = el("div", { class: "viewscreen-layer" });
-    if (image.src) {
+    if (image.src && image.ladder && image.ladder.length) {
+      // Size ladder from tools/make_sizes.py: <src>_2pow<nn>.jpg, each [nn, real pixel width].
+      var rungs = image.ladder.map(function (r) {
+        return { url: image.src + "_2pow" + String(r[0]).padStart(2, "0") + ".jpg", width: r[1] };
+      });
+      // Fallback <img src> for browsers without srcset: the smallest rung that is at least ~1000px.
+      var fallback = rungs.filter(function (r) { return r.width >= 1000; })[0] || rungs[rungs.length - 1];
+      layer.append(el("picture", { class: "viewscreen-media" }, [
+        el("img", {
+          src: fallback.url,
+          srcset: rungs.map(function (r) { return r.url + " " + r.width + "w"; }).join(", "),
+          sizes: "(max-width: 45em) 100vw, 80vw",
+          alt: image.alt || "",
+          decoding: "async",
+        }),
+      ]));
+    } else if (image.src) {
       var sizes = "(max-width: 45em) 100vw, 80vw";
       layer.append(el("picture", { class: "viewscreen-media" }, [
         el("source", { type: "image/webp", srcset: image.src + "-1280.webp 1280w, " + image.src + "-2560.webp 2560w", sizes: sizes }),
