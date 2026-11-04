@@ -237,6 +237,7 @@
 
 .kicker {
   margin: 0;
+  max-width: none;   /* a short label, not body text: don't wrap at the reading measure */
   font-family: var(--font-mono);
   font-size: 0.8rem;
   letter-spacing: 0.1em;
@@ -317,8 +318,7 @@
   min-width: 2rem;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(to right, var(--hazard-a), transparent);
-  opacity: 0.6;
+  background: linear-gradient(to right, var(--panel-1), transparent);
 }
 
 .section-intro { color: var(--text-muted); }
