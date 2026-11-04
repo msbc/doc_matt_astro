@@ -96,6 +96,7 @@
   --glow-strong: 0 0 0 1px var(--accent);
   --grid-line:   rgba(var(--s-accent-light-rgb), 0.5);
   --grid-opacity: 0.12;
+  --backdrop-veil: 90%;                 /* % of page color laid over the blurred photo */
   --hazard-b:    var(--ink);
   --scrim:       rgba(3, 5, 9, 0.88);      /* backing behind text on photos */
   --focus:       #0047D6;
@@ -147,6 +148,7 @@
     --glow-strong: 0 0 0 1px var(--s-accent-dark), 0 0 18px rgba(var(--s-accent-dark-rgb), 0.45);
     --grid-line:   rgba(var(--s-accent-dark-rgb), 0.7);
     --grid-opacity: 0.22;
+    --backdrop-veil: 76%;
     --hazard-b:    transparent;
     --focus:       var(--s-accent-dark);
   }
@@ -167,6 +169,7 @@
   --glow-strong: 0 0 0 1px var(--s-accent-dark), 0 0 18px rgba(var(--s-accent-dark-rgb), 0.45);
   --grid-line:   rgba(var(--s-accent-dark-rgb), 0.7);
   --grid-opacity: 0.22;
+  --backdrop-veil: 76%;
   --hazard-b:    transparent;
   --focus:       var(--s-accent-dark);
 }

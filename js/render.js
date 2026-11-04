@@ -352,6 +352,35 @@
     return layer;
   }
 
+  // Page backdrop: the current photo, blurred and veiled, fixed behind everything
+  // outside the header. It is blurred, so a small rung is plenty.
+  function backdropUrl(image) {
+    if (!image || !image.src) return null;
+    if (image.ladder && image.ladder.length) {
+      var r = image.ladder.filter(function (x) { return x[1] >= 800; })[0] || image.ladder[image.ladder.length - 1];
+      return image.src + "_2pow" + String(r[0]).padStart(2, "0") + ".jpg";
+    }
+    return image.src + "-1280.jpg";
+  }
+
+  Site.showBackdrop = function (name) {
+    var url = backdropUrl((SITE.images || {})[name]);
+    var box = document.querySelector(".page-backdrop");
+    if (!box) {
+      box = el("div", { class: "page-backdrop", "aria-hidden": "true" });
+      document.body.prepend(box);
+    }
+    var old = box.querySelectorAll(".page-backdrop-layer");
+    if (url) {
+      var layer = el("div", { class: "page-backdrop-layer is-entering" }, [el("img", { src: url, alt: "", decoding: "async" })]);
+      box.append(layer);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { layer.classList.remove("is-entering"); });
+      });
+    }
+    setTimeout(function () { old.forEach(function (o) { o.remove(); }); }, 1500);
+  };
+
   // The visible credit line for an image.
   function creditContent(image) {
     var text = "Source: " + (image.credit || "unknown") + (image.license ? " · " + image.license : "");
@@ -379,6 +408,7 @@
     credit.textContent = "";
     credit.append(creditContent(image));
     drawPsfMarks(Site.psfParams(image.psf));
+    Site.showBackdrop(name);
     Site.imageName = name;
   };
 
@@ -495,6 +525,7 @@
       }
 
       main.append(viewscreen(page, image));
+      Site.showBackdrop(name);
       Site.imageName = name;
       (page.sections || []).forEach(function (sec, i) { main.append(renderSection(sec, i)); });
       renderFooter();

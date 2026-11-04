@@ -45,6 +45,35 @@ body::before {
           mask-image: linear-gradient(to top, #000, transparent 85%);
 }
 
+/* The current photo, blurred and veiled with the page color, fixed behind all
+   content outside the header (see Site.showBackdrop in render.js). Sits below
+   the grid (z-index -1) and above the html background. */
+.page-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.page-backdrop-layer {
+  position: absolute;
+  inset: -4%;                       /* bleed, so the blur has no soft edge */
+  transition: opacity var(--dur-fade) ease;
+}
+.page-backdrop-layer.is-entering { opacity: 0; }
+.page-backdrop-layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(22px) saturate(1.15);
+}
+.page-backdrop::after {             /* the veil: how much of the photo shows through */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) var(--backdrop-veil), transparent);
+}
+
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
