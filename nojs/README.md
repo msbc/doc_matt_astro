@@ -5,6 +5,11 @@ site, for visitors who have JavaScript turned off. Each page in the main site
 links here from its `<noscript>` notice (for example `about.html` links to
 `nojs/about.html`).
 
+Visitors who *do* have JavaScript are redirected straight on to the full page
+(each generated page starts with a one-line script that does this). To look at a
+text-only page with JavaScript on, add `?text` to its URL, for example
+`nojs/about.html?text`.
+
 **Everything here except this README is generated and git-ignored.** If you are
 browsing the repository and don't see any `.html` files in this folder, that is
 expected: they are not stored in git.

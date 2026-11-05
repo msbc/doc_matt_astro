@@ -65,7 +65,7 @@ Adding a section to the data file is all it takes: it appears on the page and in
 
 ## Text-only version for visitors without JavaScript (`nojs/`)
 
-The main site is built in the browser, so with JavaScript off a page shows only the header, the nav, and a notice. That notice links to `nojs/<page>.html`, a plain-HTML copy of the page with no scripts. The main site never needs `nojs/` to work: there is still no build step for it.
+The main site is built in the browser, so with JavaScript off a page shows only the header, the nav, and a notice. That notice links to `nojs/<page>.html`, a plain-HTML copy of the page. The only script on those pages is a one-line redirect that sends visitors who *do* have JavaScript on to the full page; add `?text` to a `nojs/` URL (e.g. `nojs/about.html?text`) to stay on the text-only version, which is how you preview it. The main site never needs `nojs/` to work: there is still no build step for it.
 
 `nojs/` is generated and git-ignored, so it is not in the repository. After you change `data/*.js`, `js/site-data.js`, or a page's header or nav, regenerate it:
 
@@ -74,7 +74,7 @@ python3 tools/build_nojs.py          # writes nojs/*.html  (needs node, which re
 python3 tools/build_nojs.py --check  # writes nothing; exits 1 if nojs/ is out of date
 ```
 
-Never edit files in `nojs/` by hand; they are overwritten. Because `nojs/` is not committed, the GitHub Actions workflow in `.github/workflows/pages.yml` builds it on every deploy (see *Publish on GitHub Pages* below). Until you switch Pages to "GitHub Actions", the live site's "text-only version" links will 404. The text-only pages show no photo, no theme toggle, and no publication filter buttons. Keep the section renderers in `tools/build_nojs.py` in step with `BUILDERS` in `js/render.js` if you add a new section type.
+Never edit files in `nojs/` by hand; they are overwritten. Because `nojs/` is not committed, the GitHub Actions workflow in `.github/workflows/pages.yml` builds it on every deploy (see *Publish on GitHub Pages* below). Until you switch Pages to "GitHub Actions", the live site's "text-only version" links will 404. The text-only pages show no photo, no theme toggle, and no publication filter buttons. Because the `?text` marker isn't carried across links, clicking to another text-only page with JavaScript on takes you to the full page; add `?text` again, or turn JavaScript off to browse them. Keep the section renderers in `tools/build_nojs.py` in step with `BUILDERS` in `js/render.js` if you add a new section type.
 
 ## Shared settings (`js/site-data.js`)
 
