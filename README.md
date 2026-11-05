@@ -28,7 +28,7 @@ Open the page's file in `data/` (for `about.html`, that's `data/about.js`). Ever
 The data file is JavaScript written to look like JSON (`window.PAGE = { ... };`). Keep these rules in mind:
 - Text goes inside "double quotes". To write a quote inside text, use `\"` or curly quotes (“ ”).
 - Put a comma between items. Comments (`/* ... */` and `// ...`) and a trailing comma after the last item are allowed, because it is a `.js` file.
-- If you break a rule, the page shows a red **CONTENT ERROR** panel telling you to open the browser console, which names the file and line with the problem, so you won't silently get a blank page.
+- If you break a rule, the page shows a red **CONTENT ERROR** panel instead of a blank page. When you preview with `python3 -m http.server` it names the file and line (e.g. `data/about.js, line 11`). When you double-click the file, browsers hide that detail, so the panel tells you to check the browser console or use the server preview.
 
 Inside any text you can write:
 - `[link text](https://example.com)` for a link

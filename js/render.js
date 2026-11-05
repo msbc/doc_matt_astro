@@ -494,12 +494,16 @@
     ]));
   }
 
-  // The page's text is a .js file, so a typo is a syntax error the browser reports
-  // in its console (with file and line) and window.PAGE never gets defined.
-  var MISSING_DATA_HINT =
-    "This page's text file in the data/ folder didn't load. Open the browser console " +
-    "(Cmd+Option+J in Chrome, Cmd+Option+K in Firefox) to see which line has the problem. " +
-    "Common causes: a missing comma, a missing closing bracket, or a straight quote (\") inside text.";
+  // The page's text is a .js file, so a typo is a syntax error and window.PAGE never
+  // gets defined. js/error-trap.js recorded the browser's error (file and line).
+  function missingDataDetails() {
+    var trapped = window.scriptErrors || [];
+    return {
+      message: trapped.length ? trapped.join("\n") : "window.PAGE is not defined.",
+      hint: (trapped.length ? "" : "Open the browser console (Cmd+Option+J in Chrome, Cmd+Option+K in Firefox) for details. ") +
+        "Common causes: a missing comma, a missing closing bracket, or a straight quote (\") inside text."
+    };
+  }
 
   /* ---------------- Go! ---------------- */
   function render() {
@@ -508,7 +512,8 @@
 
     var page = window.PAGE;
     if (!page || typeof page !== "object") {
-      showError(main, "Content error", "window.PAGE is not defined.", MISSING_DATA_HINT);
+      var d = missingDataDetails();
+      showError(main, "Content error", d.message, d.hint);
       return;
     }
 
