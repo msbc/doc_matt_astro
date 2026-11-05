@@ -13,6 +13,8 @@ Plain HTML, CSS, and JavaScript. There is no build step and nothing to install. 
 index.html, about.html, research.html, publications.html, computing.html, 404.html
                       ← each page's frame (header, nav); its text is NOT here
 data/*.js             ← the TEXT of each page (data/about.js is about.html, etc.)
+nojs/*.html           ← GENERATED (git-ignored) text-only copy of every page, for visitors with JavaScript off
+tools/build_nojs.py   ← regenerates nojs/ (optional; the main site never needs it)
 js/site-data.js       ← settings shared by every page (name, footer, images, star shapes)
 css/tokens.css        ← every color, font, and size (light + dark themes)
 css/*.css             ← layout and component styles
@@ -60,6 +62,19 @@ Every section has `"id"` (a short name for links, like `"case-studies"`), `"labe
 Your name is bolded in author lists automatically. Set the spelling(s) in `js/site-data.js` under `owner.pubNames`. Any paper whose author list *starts* with one of those spellings counts as first-author.
 
 Adding a section to the data file is all it takes: it appears on the page and in the section indicator (the chip in the bottom-right corner).
+
+## Text-only version for visitors without JavaScript (`nojs/`)
+
+The main site is built in the browser, so with JavaScript off a page shows only the header, the nav, and a notice. That notice links to `nojs/<page>.html`, a plain-HTML copy of the page with no scripts. The main site never needs `nojs/` to work: there is still no build step for it.
+
+`nojs/` is generated and git-ignored, so it is not in the repository. After you change `data/*.js`, `js/site-data.js`, or a page's header or nav, regenerate it:
+
+```
+python3 tools/build_nojs.py          # writes nojs/*.html  (needs node, which reads the .js data files)
+python3 tools/build_nojs.py --check  # writes nothing; exits 1 if nojs/ is out of date
+```
+
+Never edit files in `nojs/` by hand; they are overwritten. Because `nojs/` is not committed, GitHub Pages does not publish it unless your deployment builds it, so on the live site the "text-only version" links will 404 until it does. The text-only pages show no photo, no theme toggle, and no publication filter buttons. Keep the section renderers in `tools/build_nojs.py` in step with `BUILDERS` in `js/render.js` if you add a new section type.
 
 ## Shared settings (`js/site-data.js`)
 
