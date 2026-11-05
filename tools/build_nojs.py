@@ -22,6 +22,7 @@ commit).  Needs node (to read the .js data files) and nothing else.
 
 Keep the builders below in step with BUILDERS in js/render.js.
 """
+
 import argparse
 import html
 import json
@@ -49,8 +50,9 @@ process.stdout.write(JSON.stringify(out));
 # Runs only when JavaScript is on: leave the text-only page for the full one, keeping
 # any #section in the URL.  location.replace leaves no history entry, so Back works.
 # "?text" in the URL skips it (to preview or test the text-only pages with JS on).
-REDIRECT = ('<script>if(!/[?&]text(?:[=&]|$)/.test(location.search))'
-            'location.replace("../%s.html"+location.hash)</script>\n')
+REDIRECT = (
+    '<script>if(!/[?&]text(?:[=&]|$)/.test(location.search))location.replace("../%s.html"+location.hash)</script>\n'
+)
 
 INLINE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)|\*([^*]+)\*")
 SIBLING_PAGE = re.compile(r"^[\w-]+\.html(?:[#?].*)?$")
@@ -75,7 +77,7 @@ class Builder:
     def href(self, url):
         """A link as written in the data, made to work from inside nojs/."""
         url = str(url)
-        scheme = re.match(r"^([a-z][a-z0-9+.-]*):", url, re.I)
+        scheme = re.match(r"^([a-z][a-z0-9+.-]*):", url, re.IGNORECASE)
         if scheme:
             return url if scheme.group(1).lower() in ("http", "https", "mailto") else "#"
         if url.startswith(("#", "/")):
@@ -87,11 +89,11 @@ class Builder:
     def inline(self, text):
         text, out, last = str(text), [], 0
         for m in INLINE.finditer(text):
-            out.append(esc(text[last:m.start()]))
+            out.append(esc(text[last : m.start()]))
             if m.group(1):
-                out.append('<a href="%s">%s</a>' % (esc(self.href(m.group(2))), esc(m.group(1))))
+                out.append(f'<a href="{esc(self.href(m.group(2)))}">{esc(m.group(1))}</a>')
             else:
-                out.append("<em>%s</em>" % esc(m.group(3)))
+                out.append(f"<em>{esc(m.group(3))}</em>")
             last = m.end()
         out.append(esc(text[last:]))
         return "".join(out)
@@ -99,61 +101,61 @@ class Builder:
     # ---- section types (mirror BUILDERS in js/render.js) ----
 
     def text(self, sec):
-        paras = "\n".join("<p>%s</p>" % self.inline(p) for p in sec.get("paragraphs", []))
-        return '<div class="prose">\n%s\n</div>' % paras
+        paras = "\n".join(f"<p>{self.inline(p)}</p>" for p in sec.get("paragraphs", []))
+        return f'<div class="prose">\n{paras}\n</div>'
 
     def cards(self, sec):
         lis = []
         for item in sec.get("items", []):
             title = esc(item.get("title", ""))
             if item.get("href"):
-                title = '<a class="card-link" href="%s">%s</a>' % (esc(self.href(item["href"])), title)
+                title = '<a class="card-link" href="{}">{}</a>'.format(esc(self.href(item["href"])), title)
             parts = []
             if item.get("meta"):
-                parts.append('<p class="meta">%s</p>' % esc(item["meta"]))
-            parts.append("<h3>%s</h3>" % title)
+                parts.append('<p class="meta">{}</p>'.format(esc(item["meta"])))
+            parts.append(f"<h3>{title}</h3>")
             if item.get("before") or item.get("after"):
                 parts.append(self.speedup(item))
             if item.get("text"):
-                parts.append("<p>%s</p>" % self.inline(item["text"]))
+                parts.append("<p>{}</p>".format(self.inline(item["text"])))
             if item.get("tags"):
-                tags = "".join("<li>%s</li>" % esc(t) for t in item["tags"])
-                parts.append('<ul class="tags" aria-label="Tags">%s</ul>' % tags)
-            lis.append('<li><article class="card">\n%s\n</article></li>' % "\n".join(parts))
-        return '<ul class="cards">\n%s\n</ul>' % "\n".join(lis)
+                tags = "".join(f"<li>{esc(t)}</li>" for t in item["tags"])
+                parts.append(f'<ul class="tags" aria-label="Tags">{tags}</ul>')
+            lis.append('<li><article class="card">\n{}\n</article></li>'.format("\n".join(parts)))
+        return '<ul class="cards">\n{}\n</ul>'.format("\n".join(lis))
 
     @staticmethod
     def speedup(item):
         parts = [
-            "<dt>Before</dt><dd>%s</dd>" % esc(item.get("before") or "—"),
-            "<dt>After</dt><dd>%s</dd>" % esc(item.get("after") or "—"),
+            "<dt>Before</dt><dd>{}</dd>".format(esc(item.get("before") or "—")),
+            "<dt>After</dt><dd>{}</dd>".format(esc(item.get("after") or "—")),
         ]
         if item.get("gain"):
-            parts.append('<dd class="gain">%s</dd>' % esc(item["gain"]))
-        return '<dl class="speedup">%s</dl>' % "".join(parts)
+            parts.append('<dd class="gain">{}</dd>'.format(esc(item["gain"])))
+        return '<dl class="speedup">{}</dl>'.format("".join(parts))
 
     def timeline(self, sec):
         lis = []
         for item in sec.get("items", []):
             parts = []
             if item.get("when"):
-                parts.append('<p class="meta">%s</p>' % esc(item["when"]))
-            parts.append("<h3>%s</h3>" % esc(item.get("title", "")))
+                parts.append('<p class="meta">{}</p>'.format(esc(item["when"])))
+            parts.append("<h3>{}</h3>".format(esc(item.get("title", ""))))
             if item.get("where"):
-                parts.append('<p class="meta">%s</p>' % esc(item["where"]))
+                parts.append('<p class="meta">{}</p>'.format(esc(item["where"])))
             if item.get("text"):
-                parts.append("<p>%s</p>" % self.inline(item["text"]))
-            lis.append("<li>\n%s\n</li>" % "\n".join(parts))
-        return '<ol class="timeline">\n%s\n</ol>' % "\n".join(lis)
+                parts.append("<p>{}</p>".format(self.inline(item["text"])))
+            lis.append("<li>\n{}\n</li>".format("\n".join(parts)))
+        return '<ol class="timeline">\n{}\n</ol>'.format("\n".join(lis))
 
     def stats(self, sec):
         rows = []
         for item in sec.get("items", []):
-            dd = '<span class="readout-value">%s</span>' % esc(item.get("value", ""))
+            dd = '<span class="readout-value">{}</span>'.format(esc(item.get("value", "")))
             if item.get("note"):
-                dd += '<span class="readout-note">%s</span>' % self.inline(item["note"])
-            rows.append('<div class="readout"><dt>%s</dt><dd>%s</dd></div>' % (esc(item.get("label", "")), dd))
-        return '<dl class="readouts">\n%s\n</dl>' % "\n".join(rows)
+                dd += '<span class="readout-note">{}</span>'.format(self.inline(item["note"]))
+            rows.append('<div class="readout"><dt>{}</dt><dd>{}</dd></div>'.format(esc(item.get("label", "")), dd))
+        return '<dl class="readouts">\n{}\n</dl>'.format("\n".join(rows))
 
     def pubs(self, sec):
         lis = []
@@ -170,18 +172,21 @@ class Builder:
             if pub.get("url"):
                 links.append(("Link", pub["url"]))
             body = [
-                '<p class="pub-title">%s</p>' % self.inline(pub.get("title", "")),
-                '<p class="pub-authors">%s</p>' % self.bold_owner(authors),
+                '<p class="pub-title">{}</p>'.format(self.inline(pub.get("title", ""))),
+                f'<p class="pub-authors">{self.bold_owner(authors)}</p>',
             ]
             if pub.get("venue"):
-                body.append('<p class="pub-venue">%s</p>' % esc(pub["venue"]))
+                body.append('<p class="pub-venue">{}</p>'.format(esc(pub["venue"])))
             if links:
-                items = "".join('<li><a href="%s">%s</a></li>' % (esc(self.href(u)), esc(label)) for label, u in links)
-                body.append('<ul class="pub-links">%s</ul>' % items)
+                items = "".join(f'<li><a href="{esc(self.href(u))}">{esc(label)}</a></li>' for label, u in links)
+                body.append(f'<ul class="pub-links">{items}</ul>')
             first = " data-first" if any(authors.strip().startswith(n) for n in self.owner_names) else ""
-            lis.append('<li class="pub"%s><span class="pub-year">%s</span>\n<div>\n%s\n</div></li>'
-                       % (first, esc(pub.get("year", "")), "\n".join(body)))
-        return '<ol class="pubs">\n%s\n</ol>' % "\n".join(lis)
+            lis.append(
+                '<li class="pub"{}><span class="pub-year">{}</span>\n<div>\n{}\n</div></li>'.format(
+                    first, esc(pub.get("year", "")), "\n".join(body)
+                )
+            )
+        return '<ol class="pubs">\n{}\n</ol>'.format("\n".join(lis))
 
     def bold_owner(self, authors):
         out, rest = [], authors
@@ -194,83 +199,97 @@ class Builder:
             if hit is None:
                 out.append(esc(rest))
                 break
-            out.append(esc(rest[:hit[0]]) + "<strong>%s</strong>" % esc(hit[1]))
-            rest = rest[hit[0] + len(hit[1]):]
+            out.append(esc(rest[: hit[0]]) + f"<strong>{esc(hit[1])}</strong>")
+            rest = rest[hit[0] + len(hit[1]) :]
         return "".join(out)
 
     # ---- page pieces ----
 
     def section(self, sec, index):
-        sid = sec.get("id") or slug(sec.get("label") or "section-%d" % (index + 1))
-        code = "%02d" % (index + 1)
+        sid = sec.get("id") or slug(sec.get("label") or f"section-{index + 1}")
+        code = f"{index + 1:02d}"
         kind = sec.get("type")
         build = getattr(self, kind, None) if kind in ("text", "cards", "timeline", "stats", "pubs") else None
         if build is None:
-            raise SystemExit('Section "%s" has unknown type "%s".' % (sec.get("label") or sid, kind))
-        intro = '<p class="section-intro">%s</p>\n' % self.inline(sec["intro"]) if sec.get("intro") else ""
+            raise SystemExit('Section "{}" has unknown type "{}".'.format(sec.get("label") or sid, kind))
+        intro = '<p class="section-intro">{}</p>\n'.format(self.inline(sec["intro"])) if sec.get("intro") else ""
         return (
-            '<section class="section section--%s" id="%s" data-label="%s" data-code="%s" aria-labelledby="%s-title">\n'
-            '<header class="section-head"><span class="section-code" aria-hidden="true">%s</span>'
-            '<h2 id="%s-title">%s</h2></header>\n%s%s\n</section>'
-            % (kind, esc(sid), esc(sec.get("label") or sid), code, esc(sid), code, esc(sid),
-               esc(sec.get("label", "")), intro, build(sec))
+            '<section class="section section--{}" id="{}" data-label="{}" data-code="{}" aria-labelledby="{}-title">\n'
+            '<header class="section-head"><span class="section-code" aria-hidden="true">{}</span>'
+            '<h2 id="{}-title">{}</h2></header>\n{}{}\n</section>'.format(
+                kind,
+                esc(sid),
+                esc(sec.get("label") or sid),
+                code,
+                esc(sid),
+                code,
+                esc(sid),
+                esc(sec.get("label", "")),
+                intro,
+                build(sec),
+            )
         )
 
     def main(self, stem, page):
         home = bool(page.get("home"))
         if home:
             wm = self.site.get("wordmark") or {"before": "Doc", "after": "Matt Astro"}
-            heading = ('<h1>%s<span class="sr-only">.</span><span class="psf" aria-hidden="true"></span> %s</h1>'
-                       % (esc(wm["before"]), esc(wm["after"])))
+            heading = '<h1>{}<span class="sr-only">.</span><span class="psf" aria-hidden="true"></span> {}</h1>'.format(
+                esc(wm["before"]), esc(wm["after"])
+            )
         else:
-            heading = "<h1>%s</h1>" % esc(page.get("title", ""))
+            heading = "<h1>{}</h1>".format(esc(page.get("title", "")))
         panel = []
         if page.get("kicker"):
-            panel.append('<p class="kicker">%s</p>' % esc(page["kicker"]))
+            panel.append('<p class="kicker">{}</p>'.format(esc(page["kicker"])))
         panel.append(heading)
         if page.get("intro"):
-            panel.append("<p>%s</p>" % self.inline(page["intro"]))
+            panel.append("<p>{}</p>".format(self.inline(page["intro"])))
         sections = "\n".join(self.section(s, i) for i, s in enumerate(page.get("sections", [])))
         return (
             '<main id="main" tabindex="-1">\n'
             '<div class="noscript-panel"><p>This is the text-only version of this page. '
-            '<a href="../%s.html">Open the full site</a> (needs JavaScript).</p></div>\n'
-            '<div class="viewscreen%s" style="min-height:0;padding-top:0">\n'  # no photo, so no photo-sized gap
-            '<div class="viewscreen-panel dark-island">\n%s\n</div>\n</div>\n'
-            "%s\n</main>"
-            % (stem, " viewscreen--hero" if home else "", "\n".join(panel), sections)
+            '<a href="../{}.html">Open the full site</a> (needs JavaScript).</p></div>\n'
+            '<div class="viewscreen{}" style="min-height:0;padding-top:0">\n'  # no photo, so no photo-sized gap
+            '<div class="viewscreen-panel dark-island">\n{}\n</div>\n</div>\n'
+            "{}\n</main>".format(stem, " viewscreen--hero" if home else "", "\n".join(panel), sections)
         )
 
     def footer(self):
         data = self.site.get("footer")
         if not data:
             return '<footer class="site-footer"></footer>'
-        links = "".join('<li><a href="%s">%s</a></li>' % (esc(self.href(l["href"])), esc(l["label"]))
-                        for l in data.get("links", []))
-        return ('<footer class="site-footer">\n<p>%s</p>\n<ul>%s</ul>\n<p aria-hidden="true">%s</p>\n</footer>'
-                % (esc(data.get("note", "")), links, esc(data.get("readout", ""))))
+        links = "".join(
+            '<li><a href="{}">{}</a></li>'.format(esc(self.href(l["href"])), esc(l["label"]))
+            for l in data.get("links", [])
+        )
+        return '<footer class="site-footer">\n<p>{}</p>\n<ul>{}</ul>\n<p aria-hidden="true">{}</p>\n</footer>'.format(
+            esc(data.get("note", "")), links, esc(data.get("readout", ""))
+        )
 
 
 def build_page(stem, source_html, page, builder):
     out = source_html
-    out = re.sub(r"[ \t]*<!-- 1\. Apply.*?-->\n", "", out, flags=re.S)
-    out = re.sub(r"[ \t]*<!-- 4\. Scripts.*?-->\n", "", out, flags=re.S)
-    out = re.sub(r"[ \t]*<script\b[^>]*>.*?</script>\n", "", out, flags=re.S)
-    out = re.sub(r"[ \t]*<button id=\"theme-toggle\".*?</button>\n", "", out, flags=re.S)
-    out = re.sub(r"<!-- Page text lives in .*?-->\n", "", out, flags=re.S)
+    out = re.sub(r"[ \t]*<!-- 1\. Apply.*?-->\n", "", out, flags=re.DOTALL)
+    out = re.sub(r"[ \t]*<!-- 4\. Scripts.*?-->\n", "", out, flags=re.DOTALL)
+    out = re.sub(r"[ \t]*<script\b[^>]*>.*?</script>\n", "", out, flags=re.DOTALL)
+    out = re.sub(r"[ \t]*<button id=\"theme-toggle\".*?</button>\n", "", out, flags=re.DOTALL)
+    out = re.sub(r"<!-- Page text lives in .*?-->\n", "", out, flags=re.DOTALL)
     out = re.sub(r'\b(href|src)="(css|cv|js|img|data)/', r'\1="../\2/', out)  # we live in nojs/
     new_main = builder.main(stem, page)
     new_footer = builder.footer()
-    out, n1 = re.subn(r'<main id="main".*?</main>', lambda m: new_main, out, flags=re.S)
-    out, n2 = re.subn(r'<footer class="site-footer">.*?</footer>', lambda m: new_footer, out, flags=re.S)
+    out, n1 = re.subn(r'<main id="main".*?</main>', lambda m: new_main, out, flags=re.DOTALL)
+    out, n2 = re.subn(r'<footer class="site-footer">.*?</footer>', lambda m: new_footer, out, flags=re.DOTALL)
     if n1 != 1 or n2 != 1:
-        raise SystemExit("%s.html: expected one <main id=\"main\"> and one <footer class=\"site-footer\">." % stem)
+        raise SystemExit(f'{stem}.html: expected one <main id="main"> and one <footer class="site-footer">.')
     # Right after the viewport <meta>, so <meta charset> stays within the first 1024 bytes.
     out, n3 = re.subn(r'(<meta name="viewport"[^>]*>\n)', lambda m: m.group(1) + "  " + REDIRECT % stem, out, count=1)
     if n3 != 1:
-        raise SystemExit("%s.html: expected a <meta name=\"viewport\"> line to place the redirect after." % stem)
-    note = ("<!-- GENERATED by tools/build_nojs.py from %s.html, data/%s.js and js/site-data.js. "
-            "Do not edit; re-run the script. -->\n" % (stem, stem))
+        raise SystemExit(f'{stem}.html: expected a <meta name="viewport"> line to place the redirect after.')
+    note = (
+        f"<!-- GENERATED by tools/build_nojs.py from {stem}.html, data/{stem}.js and js/site-data.js. "
+        "Do not edit; re-run the script. -->\n"
+    )
     return out.replace("<head>", note + "<head>", 1) if "<head>" in out else note + out
 
 
@@ -285,9 +304,11 @@ def main():
     root = args.root.resolve()
     sources = {p.stem: p for p in sorted(root.glob("*.html")) if (root / "data" / (p.stem + ".js")).exists()}
     if not sources:
-        sys.exit("No <page>.html with a matching data/<page>.js found in %s" % root)
+        sys.exit(f"No <page>.html with a matching data/<page>.js found in {root}")
 
-    proc = subprocess.run([args.node, "-e", NODE_LOADER, str(root), *sources], capture_output=True, text=True)
+    proc = subprocess.run(
+        [args.node, "-e", NODE_LOADER, str(root), *sources], capture_output=True, text=True, check=False
+    )
     if proc.returncode != 0:
         sys.exit("node could not read the data files:\n" + proc.stderr)
     loaded = json.loads(proc.stdout)
@@ -309,9 +330,9 @@ def main():
         if stale:
             print("Out of date (run tools/build_nojs.py):", *map(str, stale), sep="\n  ")
             sys.exit(1)
-        print("%s/ is up to date." % args.out)
+        print(f"{args.out}/ is up to date.")
     else:
-        print("Wrote %d page(s) to %s/ (%d changed)." % (len(sources), args.out, len(stale)))
+        print(f"Wrote {len(sources)} page(s) to {args.out}/ ({len(stale)} changed).")
 
 
 if __name__ == "__main__":

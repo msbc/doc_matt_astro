@@ -28,6 +28,7 @@ averaged in strips, then converted back to the same profile.
 
 Needs Pillow and numpy:  pip install pillow numpy
 """
+
 import argparse
 import math
 import os
@@ -51,14 +52,15 @@ STRIP_PIXELS = 4_000_000  # source pixels converted to float per strip (~100 MB 
 # Planning: which pixels to trim / pad so every output pixel is an exact block
 # --------------------------------------------------------------------------
 
+
 @dataclass
 class Axis:
     method: str
-    size: int                                   # size before adjustment
-    final: int                                  # size after the full reduction
-    ops: list = field(default_factory=list)     # (level, side, amount); side 0=low edge, 1=high edge
-    removed: int = 0                            # source pixels removed
-    added: int = 0                              # source pixels generated
+    size: int  # size before adjustment
+    final: int  # size after the full reduction
+    ops: list = field(default_factory=list)  # (level, side, amount); side 0=low edge, 1=high edge
+    removed: int = 0  # source pixels removed
+    added: int = 0  # source pixels generated
 
     @property
     def cost(self):
@@ -176,18 +178,26 @@ def sources(folder):
 # --------------------------------------------------------------------------
 
 D50 = np.array([0.9642, 1.0, 0.8249])
-SRGB_TO_XYZ_D50 = np.array([[0.4360747, 0.3850649, 0.1430804],
-                            [0.2225045, 0.7168786, 0.0606169],
-                            [0.0139322, 0.0971045, 0.7141733]])
-BRADFORD_D50_TO_D65 = np.array([[0.9555766, -0.0230393, 0.0631636],
-                                [-0.0282895, 1.0099416, 0.0210077],
-                                [0.0122982, -0.0204830, 1.3299098]])
-OKLAB_M1 = np.array([[0.8189330101, 0.3618667424, -0.1288597137],   # XYZ(D65) -> LMS
-                     [0.0329845436, 0.9293118715, 0.0361456387],
-                     [0.0482003018, 0.2643662691, 0.6338517070]])
-OKLAB_M2 = np.array([[0.2104542553, 0.7936177850, -0.0040720468],   # LMS' -> Lab
-                     [1.9779984951, -2.4285922050, 0.4505937099],
-                     [0.0259040371, 0.7827717662, -0.8086757660]])
+SRGB_TO_XYZ_D50 = np.array(
+    [[0.4360747, 0.3850649, 0.1430804], [0.2225045, 0.7168786, 0.0606169], [0.0139322, 0.0971045, 0.7141733]]
+)
+BRADFORD_D50_TO_D65 = np.array(
+    [[0.9555766, -0.0230393, 0.0631636], [-0.0282895, 1.0099416, 0.0210077], [0.0122982, -0.0204830, 1.3299098]]
+)
+OKLAB_M1 = np.array(
+    [
+        [0.8189330101, 0.3618667424, -0.1288597137],  # XYZ(D65) -> LMS
+        [0.0329845436, 0.9293118715, 0.0361456387],
+        [0.0482003018, 0.2643662691, 0.6338517070],
+    ]
+)
+OKLAB_M2 = np.array(
+    [
+        [0.2104542553, 0.7936177850, -0.0040720468],  # LMS' -> Lab
+        [1.9779984951, -2.4285922050, 0.4505937099],
+        [0.0259040371, 0.7827717662, -0.8086757660],
+    ]
+)
 
 
 def _srgb_trc(x):
@@ -204,13 +214,13 @@ def _trc_function(tag):
         if count == 1:
             gamma = struct.unpack(">H", tag[12:14])[0] / 256
             return lambda x: x**gamma
-        table = np.frombuffer(tag[12:12 + 2 * count], dtype=">u2").astype(np.float64) / 65535
+        table = np.frombuffer(tag[12 : 12 + 2 * count], dtype=">u2").astype(np.float64) / 65535
         grid = np.linspace(0, 1, count)
         return lambda x: np.interp(x, grid, table)
     if kind == b"para":
         ftype = struct.unpack(">H", tag[8:10])[0]
         n = (1, 3, 4, 5, 7)[ftype]
-        g, *p = [v / 65536 for v in struct.unpack(f">{n}i", tag[12:12 + 4 * n])]
+        g, *p = [v / 65536 for v in struct.unpack(f">{n}i", tag[12 : 12 + 4 * n])]
         if ftype == 0:
             return lambda x: x**g
         if ftype == 1:
@@ -234,8 +244,8 @@ def read_profile(icc):
     count = struct.unpack(">I", icc[128:132])[0]
     tags = {}
     for i in range(count):
-        sig, off, size = struct.unpack(">4sII", icc[132 + 12 * i:144 + 12 * i])
-        tags[sig] = icc[off:off + size]
+        sig, off, size = struct.unpack(">4sII", icc[132 + 12 * i : 144 + 12 * i])
+        tags[sig] = icc[off : off + size]
     try:
         cols = [struct.unpack(">3i", tags[s][8:20]) for s in (b"rXYZ", b"gXYZ", b"bXYZ")]
         curves = [_trc_function(tags[s]) for s in (b"rTRC", b"gTRC", b"bTRC")]
@@ -302,6 +312,7 @@ class Space:
 # Rendering
 # --------------------------------------------------------------------------
 
+
 def edges(axis, level):
     lo_c = lo_p = hi_c = hi_p = 0
     for lv, side, amount in axis.ops:
@@ -344,7 +355,7 @@ def adjust_array(arr, ax, ay, level):
     xlc, xhc, xlp, xhp = edges(ax, level)
     ylc, yhc, ylp, yhp = edges(ay, level)
     if xlc or xhc or ylc or yhc:
-        arr = arr[ylc:arr.shape[0] - yhc, xlc:arr.shape[1] - xhc]
+        arr = arr[ylc : arr.shape[0] - yhc, xlc : arr.shape[1] - xhc]
     if xlp or xhp or ylp or yhp:
         arr = np.pad(arr, ((ylp, yhp), (xlp, xhp), (0, 0)), mode="symmetric")
     return arr
@@ -358,7 +369,7 @@ def reduce_lab(im, f, space):
     for y in range(0, h, rows):
         y1 = min(y + rows, h)
         lab = space.to_lab(np.asarray(im.crop((0, y, w, y1))))
-        out[y // f:y1 // f] = lab.reshape((y1 - y) // f, f, w // f, f, 3).mean(axis=(1, 3))
+        out[y // f : y1 // f] = lab.reshape((y1 - y) // f, f, w // f, f, 3).mean(axis=(1, 3))
     return out
 
 
@@ -399,24 +410,29 @@ def process(path, base, levels, quality, space_name):
         dest = folder / f"{base}_2pow{L.n:02d}.jpg"
         tmp = dest.with_name(dest.name + ".tmp")
         out = render(im, L, space)
-        out.save(tmp, "JPEG", quality=quality, subsampling=0, optimize=True,
-                 progressive=True, icc_profile=icc)
+        out.save(tmp, "JPEG", quality=quality, subsampling=0, optimize=True, progressive=True, icc_profile=icc)
         os.replace(tmp, dest)
         done.append((dest.name, out.size))
     return path, done
 
 
 def describe(L):
-    return (f"2^{L.n:<2} k={L.k:<2} {L.method:<6} -> {L.size[0]:>5}x{L.size[1]:<5} "
-            f"removed {L.x.removed:>3}+{L.y.removed:<3} added {L.x.added:>3}+{L.y.added:<3} (src px, w+h)")
+    return (
+        f"2^{L.n:<2} k={L.k:<2} {L.method:<6} -> {L.size[0]:>5}x{L.size[1]:<5} "
+        f"removed {L.x.removed:>3}+{L.y.removed:<3} added {L.x.added:>3}+{L.y.added:<3} (src px, w+h)"
+    )
 
 
 def main():
     default_dir = Path(__file__).resolve().parent.parent / "img"
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dir", type=Path, default=default_dir, help="folder with the source JPGs (default: ../img)")
-    ap.add_argument("--space", choices=("srgb", "oklab", "cielab"), default="srgb",
-                    help="colour space the block averaging is done in")
+    ap.add_argument(
+        "--space",
+        choices=("srgb", "oklab", "cielab"),
+        default="srgb",
+        help="colour space the block averaging is done in",
+    )
     ap.add_argument("--plan", action="store_true", help="print the plan and exit without writing")
     ap.add_argument("--jobs", type=int, default=os.cpu_count(), help="parallel worker processes")
     ap.add_argument("--quality", type=int, default=90, help="JPEG quality of the outputs")
@@ -439,22 +455,23 @@ def main():
         for L in levels:
             print("   " + describe(L))
     total = sum(len(j[5]) for j in jobs)
-    print(f"\n{len(jobs)} sources, {total} downsampled files, "
-          f"{sum(L.added > 0 for j in jobs for L in j[5])} levels with generated pixels, averaging in {args.space}")
+    print(
+        f"\n{len(jobs)} sources, {total} downsampled files, "
+        f"{sum(L.added > 0 for j in jobs for L in j[5])} levels with generated pixels, averaging in {args.space}"
+    )
     if args.plan:
         return 0
 
     work = sorted(jobs, key=lambda j: -j[3] * j[4])
     failed = []
     with ProcessPoolExecutor(max_workers=args.jobs) as pool:
-        futs = {pool.submit(process, p, b, lv, args.quality, args.space): (p, lv)
-                for p, b, _r, _w, _h, lv in work}
+        futs = {pool.submit(process, p, b, lv, args.quality, args.space): (p, lv) for p, b, _r, _w, _h, lv in work}
         for fut in as_completed(futs):
             p, lv = futs[fut]
             try:
                 fut.result()
                 print(f"done {p.name} ({len(lv)} files)", flush=True)
-            except Exception as e:  # keep going; the original stays untouched
+            except Exception as e:  # noqa: BLE001 - keep going; the original stays untouched
                 failed.append(p)
                 print(f"FAILED {p.name}: {e!r}", file=sys.stderr, flush=True)
 

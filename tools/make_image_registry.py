@@ -14,6 +14,7 @@ so an existing js/images.js is NOT overwritten unless you pass --force.
 
 Needs Pillow and exiftool (brew install exiftool).
 """
+
 import argparse
 import json
 import re
@@ -42,7 +43,7 @@ OBJECT_OF = {stem: obj for obj, stems in OBJECTS.items() for stem in stems}
 
 def exif(paths):
     """{path: {tag: str}} for every path, in one exiftool call."""
-    if not paths:   # e.g. an empty tier3/ folder
+    if not paths:  # e.g. an empty tier3/ folder
         return {}
     cmd = ["exiftool", "-json", *[f"-{t}" for t in TAGS], *map(str, paths)]
     out = subprocess.run(cmd, capture_output=True, text=True, check=False).stdout
@@ -55,7 +56,7 @@ def clean(s):
 
 def credit_of(meta):
     c = clean(meta.get("Credit", ""))
-    c = re.split(r"\s*Acknowledg(?:e)?ments?\b", c, maxsplit=1)[0]   # keep the creators, drop courtesy lines
+    c = re.split(r"\s*Acknowledg(?:e)?ments?\b", c, maxsplit=1)[0]  # keep the creators, drop courtesy lines
     return c.rstrip(" .;,")
 
 
@@ -67,7 +68,7 @@ def credit_truncated(meta):
 def credit_for_site(meta):
     c = credit_of(meta)
     if credit_truncated(meta):
-        c = c.rsplit(",", 1)[0].strip()      # drop the last, possibly half-cut, name
+        c = c.rsplit(",", 1)[0].strip()  # drop the last, possibly half-cut, name
     return c
 
 
@@ -91,7 +92,7 @@ def psf_preset(stem, meta):
         return "rubin"
     if "Hubble" in source or "Hubble" in title or "hubble" in stem.lower():
         return "hst"
-    if "CSA" in credit:       # NASA/ESA/CSA = Webb; NASA/ESA alone = Hubble
+    if "CSA" in credit:  # NASA/ESA/CSA = Webb; NASA/ESA alone = Hubble
         return "jwst"
     if credit and "ESA" in credit:
         return "hst"
@@ -116,21 +117,23 @@ def build(tier_dirs, max_n, weights):
             credit = credit_for_site(md)
             known = bool(credit)
             title = clean(md.get("Title") or md.get("Headline") or md.get("ObjectName") or "").lstrip("*").strip()
-            entries.append({
-                "name": stem,
-                "src": f"img/{tier.name}/{stem}",
-                "ladder": ladder,
-                "alt": title,
-                "title": title or stem,
-                "credit": credit or "TODO",
-                "license": license_of(md),
-                "sourceUrl": source_url(stem, md),
-                "object": OBJECT_OF.get(stem, ""),
-                "psf": psf_preset(stem, md),
-                "trimmed": credit_truncated(md),
-                "weight": weights.get(tier.name, 1) if known else 0,
-                "tier": tier.name,
-            })
+            entries.append(
+                {
+                    "name": stem,
+                    "src": f"img/{tier.name}/{stem}",
+                    "ladder": ladder,
+                    "alt": title,
+                    "title": title or stem,
+                    "credit": credit or "TODO",
+                    "license": license_of(md),
+                    "sourceUrl": source_url(stem, md),
+                    "object": OBJECT_OF.get(stem, ""),
+                    "psf": psf_preset(stem, md),
+                    "trimmed": credit_truncated(md),
+                    "weight": weights.get(tier.name, 1) if known else 0,
+                    "tier": tier.name,
+                }
+            )
     return entries
 
 
@@ -139,7 +142,8 @@ def js_string(s):
 
 
 def render(entries):
-    out = ["""/* =====================================================================
+    out = [
+        """/* =====================================================================
    images.js — the real background photos. Loaded after site-data.js, it adds
    to SITE.images and replaces SITE.rotation (so the placeholder starfields
    are only a fallback).
@@ -155,14 +159,18 @@ def render(entries):
 (function () {
   var S = window.SITE;
   if (!S) return;
-  var NEW = {"""]
+  var NEW = {"""
+    ]
     for e in entries:
         out.append(f"    {js_string(e['name'])}: {{")
         out.append(f"      src: {js_string(e['src'])},")
         out.append("      ladder: " + json.dumps(e["ladder"]) + ",")
         out.append(f"      alt: {js_string(e['alt'])},")
         out.append(f"      title: {js_string(e['title'])},")
-        out.append(f"      credit: {js_string(e['credit'])},"  + ("   // file metadata was cut off; last name dropped, see the release page" if e["trimmed"] else ""))
+        out.append(
+            f"      credit: {js_string(e['credit'])},"
+            + ("   // file metadata was cut off; last name dropped, see the release page" if e["trimmed"] else "")
+        )
         out.append(f"      license: {js_string(e['license'])},")
         out.append(f"      sourceUrl: {js_string(e['sourceUrl'])},")
         if e["object"]:
@@ -189,8 +197,13 @@ def main():
     ap.add_argument("--img", type=Path, default=ROOT / "img", help="folder holding the tier* subfolders")
     ap.add_argument("--out", type=Path, default=ROOT / "js" / "images.js")
     ap.add_argument("--max-n", type=int, default=12, help="largest 2^n rung to offer (default 12 = ~4096 px)")
-    ap.add_argument("--weight", action="append", default=[], metavar="TIER=W",
-                    help="rotation weight per tier folder (default tier1=2, tier2=1, others 1)")
+    ap.add_argument(
+        "--weight",
+        action="append",
+        default=[],
+        metavar="TIER=W",
+        help="rotation weight per tier folder (default tier1=2, tier2=1, others 1)",
+    )
     ap.add_argument("--force", action="store_true", help="overwrite an existing --out file")
     args = ap.parse_args()
 
