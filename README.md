@@ -74,7 +74,7 @@ python3 tools/build_nojs.py          # writes nojs/*.html  (needs node, which re
 python3 tools/build_nojs.py --check  # writes nothing; exits 1 if nojs/ is out of date
 ```
 
-Never edit files in `nojs/` by hand; they are overwritten. Because `nojs/` is not committed, GitHub Pages does not publish it unless your deployment builds it, so on the live site the "text-only version" links will 404 until it does. The text-only pages show no photo, no theme toggle, and no publication filter buttons. Keep the section renderers in `tools/build_nojs.py` in step with `BUILDERS` in `js/render.js` if you add a new section type.
+Never edit files in `nojs/` by hand; they are overwritten. Because `nojs/` is not committed, the GitHub Actions workflow in `.github/workflows/pages.yml` builds it on every deploy (see *Publish on GitHub Pages* below). Until you switch Pages to "GitHub Actions", the live site's "text-only version" links will 404. The text-only pages show no photo, no theme toggle, and no publication filter buttons. Keep the section renderers in `tools/build_nojs.py` in step with `BUILDERS` in `js/render.js` if you add a new section type.
 
 ## Shared settings (`js/site-data.js`)
 
@@ -154,15 +154,16 @@ The site respects "reduce motion": visitors with that setting get no transitions
 
 ## Publish on GitHub Pages
 
-There is nothing to build: GitHub serves the files as they are.
+The site itself has nothing to build. The one exception is `nojs/` (the text-only pages), which is generated rather than committed, so the site is deployed by a small GitHub Actions workflow (`.github/workflows/pages.yml`) that runs `tools/build_nojs.py` and then publishes the folder.
 
 1. Create a repository and push this folder to it.
    - Name it **`<username>.github.io`** and the site appears at `https://<username>.github.io/`.
    - Any other name puts it at `https://<username>.github.io/<repo>/`.
-2. In the repository, open **Settings → Pages → Build and deployment**, choose **Deploy from a branch**, select `main` and `/ (root)`, and save.
+2. In the repository, open **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions**. (Not "Deploy from a branch": that would publish the files without running the build, so `nojs/` would be missing.)
+3. Push to `main`. The **Deploy site** workflow runs (see the repository's **Actions** tab) and publishes the site. You can also run it by hand from there.
 
 Also included:
 - `404.html`, a themed "Signal Lost" page that GitHub Pages shows for missing URLs.
-- `.nojekyll`, an empty file that tells GitHub to serve the files as-is without running its Jekyll processor.
+- `.nojekyll`, an empty file that tells GitHub to serve the files as-is without running its Jekyll processor. (The Actions deployment doesn't run Jekyll either; the file is harmless and keeps a branch deployment working.)
 
 For a custom domain, add it under **Settings → Pages** (GitHub creates the `CNAME` file for you), then point your DNS at GitHub as its docs describe.
