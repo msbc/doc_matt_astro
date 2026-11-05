@@ -5,8 +5,8 @@
    edit: change the text between the quotes. (Unlike strict JSON, comments
    like this one and trailing commas are allowed here.)
 
-   Each page's own text lives inside that page's .html file, in the
-   <script type="application/json" id="page-data"> block.
+   Each page's own text lives in its own file in the data/ folder
+   (data/about.js for about.html, and so on).
    ===================================================================== */
 
 window.SITE = {
@@ -33,7 +33,7 @@ window.SITE = {
 
   /* ---------------------------------------------------------------
      IMAGE ROTATION
-     Pages whose JSON says  "image": "rotate"  take turns through this
+     Pages whose data says  "image": "rotate"  take turns through this
      list: every page view shows a randomly chosen photo, so clicking
      around the site tours different telescopes. On the home page the
      photo also changes by itself every `rotationSeconds` (0 = never),
@@ -58,7 +58,7 @@ window.SITE = {
 
   /* ---------------------------------------------------------------
      IMAGE REGISTRY — one entry per background photo.
-     A page picks its photo with  "image": "<name>"  in its JSON
+     A page picks its photo with  "image": "<name>"  in its data file
      (or "rotate" to use the rotation list above).
 
      To add a real photo (see README.md for resize commands):

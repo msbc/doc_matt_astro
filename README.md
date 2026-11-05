@@ -11,23 +11,24 @@ Plain HTML, CSS, and JavaScript. There is no build step and nothing to install. 
 
 ```
 index.html, about.html, research.html, publications.html, computing.html, 404.html
-                      ← each page; its TEXT is in the JSON block at the top
+                      ← each page's frame (header, nav); its text is NOT here
+data/*.js             ← the TEXT of each page (data/about.js is about.html, etc.)
 js/site-data.js       ← settings shared by every page (name, footer, images, star shapes)
 css/tokens.css        ← every color, font, and size (light + dark themes)
 css/*.css             ← layout and component styles
-js/*.js               ← the code that builds pages from the JSON (no need to touch for text edits)
+js/*.js               ← the code that builds pages from the data/ files (no need to touch for text edits)
 img/                  ← background photos
 cv/Matt_Coleman_CV.pdf ← put your CV here (the "CV" button links to it)
 ```
 
 ## Edit the text on a page
 
-Open the page's `.html` file. Near the top is a block that starts with `<script type="application/json" id="page-data">`. Everything you see on the page comes from there.
+Open the page's file in `data/` (for `about.html`, that's `data/about.js`). Everything you see on the page comes from there. Only the page's `<title>` and `<meta description>` live in the `.html` file.
 
-JSON is strict. Keep these rules in mind:
+The data file is JavaScript written to look like JSON (`window.PAGE = { ... };`). Keep these rules in mind:
 - Text goes inside "double quotes". To write a quote inside text, use `\"` or curly quotes (“ ”).
-- Put a comma between items, but **not** after the last item in a list `[ ]` or object `{ }`.
-- If you break a rule, the page shows a red **CONTENT ERROR** panel with a line number, so you won't silently get a blank page.
+- Put a comma between items. Comments (`/* ... */` and `// ...`) and a trailing comma after the last item are allowed, because it is a `.js` file.
+- If you break a rule, the page shows a red **CONTENT ERROR** panel telling you to open the browser console, which names the file and line with the problem, so you won't silently get a blank page.
 
 Inside any text you can write:
 - `[link text](https://example.com)` for a link
@@ -58,13 +59,13 @@ Every section has `"id"` (a short name for links, like `"case-studies"`), `"labe
 
 Your name is bolded in author lists automatically. Set the spelling(s) in `js/site-data.js` under `owner.pubNames`. Any paper whose author list *starts* with one of those spellings counts as first-author.
 
-Adding a section to the JSON is all it takes: it appears on the page and in the section indicator (the chip in the bottom-right corner).
+Adding a section to the data file is all it takes: it appears on the page and in the section indicator (the chip in the bottom-right corner).
 
 ## Shared settings (`js/site-data.js`)
 
 This file holds the wordmark text, the footer links, the image registry, and the PSF star shapes. It is a JavaScript file, so comments and trailing commas are fine there.
 
-The header wordmark and the navigation are plain HTML, so they still work with JavaScript off. To rename a nav item or add a page, edit the `<nav class="rail">` list in **every** `.html` file. To add a page, copy an existing one, then change its `<title>`, its JSON, and its `aria-current="page"` link.
+The header wordmark and the navigation are plain HTML, so they still work with JavaScript off. To rename a nav item or add a page, edit the `<nav class="rail">` list in **every** `.html` file. To add a page, copy an existing one, then change its `<title>`, its `data/` script tag (and copy the matching `data/*.js` file), and its `aria-current="page"` link.
 
 ## Background photos (`js/images.js`)
 
@@ -108,7 +109,7 @@ With `--space oklab` or `cielab` each image is converted from its own embedded I
 
 ### How rotation works
 
-- Pages whose JSON says `"image": "rotate"` (all of them, by default) take turns through `SITE.rotation`. Each page view shows a randomly chosen photo, so clicking around the site tours different telescopes.
+- Pages whose data says `"image": "rotate"` (all of them, by default) take turns through `SITE.rotation`. Each page view shows a randomly chosen photo, so clicking around the site tours different telescopes.
 - Picks are weighted. A `rotation` entry can be `{ name: "jwst-carina", weight: 3 }` (default weight 1, 0 = never).
 - `rotationDecay` (default `[0, 1/3, 2/3]`) makes recently shown photos less likely: the last one is never repeated, the one before is a third as likely, the one before that two thirds. Set `[]` to turn it off. The history is remembered in the browser.
 - Give several photos of the same target the same `object: "carina"` in `images`, and showing one also holds back the others, one decay step more mildly (with the default, a sibling of the photo just shown is a third as likely, not impossible).

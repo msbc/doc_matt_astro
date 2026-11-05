@@ -22,6 +22,7 @@
 
   <!-- 4. Scripts. "defer" = run after the HTML is read, in this order. -->
   <script src="js/site-data.js" defer></script>
+  <script src="data/index.js" defer></script>
   <script src="js/images.js" defer></script>
   <script src="js/psf-star.js" defer></script>
   <script src="js/render.js" defer></script>
@@ -30,72 +31,7 @@
   <script src="js/theme-toggle.js" defer></script>
 </head>
 <body>
-<!-- ================================================================
-     PAGE CONTENT — EDIT TEXT BELOW
-     This block is JSON: keep the "quotes", and put a comma between
-     items but NOT after the last one. See README.md for every field.
-     ================================================================ -->
-<script type="application/json" id="page-data">
-{
-  "home": true,
-  "kicker": "Matt Coleman · Computational Astrophysicist & HPC Specialist",
-  "intro": "I build and tune the simulations that turn supercomputers into telescopes — from astrophysical fluid dynamics to squeezing the last few percent out of parallel code.",
-  "image": "rotate",
-  "sections": [
-    {
-      "id": "consoles",
-      "label": "Consoles",
-      "type": "cards",
-      "items": [
-        {
-          "meta": "Sector 02",
-          "title": "Research",
-          "href": "research.html",
-          "text": "Simulations, methods, and the astrophysical questions behind them."
-        },
-        {
-          "meta": "Sector 03",
-          "title": "Publications",
-          "href": "publications.html",
-          "text": "Refereed papers, proceedings, and software, with ADS / arXiv / DOI links."
-        },
-        {
-          "meta": "Sector 04",
-          "title": "Computing",
-          "href": "computing.html",
-          "text": "My work as a Performance Tuning Analyst: profiling, optimization, and HPC support."
-        }
-      ]
-    },
-    {
-      "id": "status",
-      "label": "Status",
-      "type": "stats",
-      "intro": "Placeholder readouts — edit these in index.html.",
-      "items": [
-        {
-          "label": "Current role",
-          "value": "Perf. Tuning Analyst",
-          "note": "Details on the [Computing](computing.html) page"
-        },
-        {
-          "label": "Field",
-          "value": "Comp. Astrophysics"
-        },
-        {
-          "label": "Toolchain",
-          "value": "MPI · OpenMP · GPU"
-        },
-        {
-          "label": "Status",
-          "value": "Nominal"
-        }
-      ]
-    }
-  ]
-}
-</script>
-<!-- ======================= END OF PAGE CONTENT ===================== -->
+<!-- Page text lives in data/index.js (edit that file to change what this page says). -->
 
   <a class="skip-link" href="#main">Skip to content</a>
 

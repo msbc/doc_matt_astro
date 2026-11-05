@@ -1,10 +1,11 @@
 /* =====================================================================
-   render.js — reads the page's JSON block and builds the page.
+   render.js — reads the page's data (window.PAGE) and builds the page.
 
-   You shouldn't need to edit this file to change TEXT — edit the JSON
-   in each .html file instead. Edit this file to add a new section TYPE.
+   You shouldn't need to edit this file to change TEXT — edit the matching
+   file in data/ (e.g. data/about.js) instead. Edit this file to add a new
+   section TYPE.
 
-   Page JSON shape:
+   Page data shape (data/<page>.js sets  window.PAGE = { ... };):
    {
      "title": "Research",                // the page's big heading (h1)
      "kicker": "Sector 02",              // small label above the heading (optional)
@@ -84,7 +85,7 @@
   }
 
   /* ---------------- Section builders ----------------
-     Each one takes a section object from the JSON and returns an element. */
+     Each one takes a section object from the page data and returns an element. */
 
   var BUILDERS = {
     // "paragraphs": ["First paragraph.", "Second paragraph."]
@@ -493,26 +494,21 @@
     ]));
   }
 
-  // If the browser's error message gives a character position, convert it to a line number.
-  function jsonErrorHint(err, source) {
-    var m = /position (\d+)/.exec(err.message);
-    if (!m) return "Common causes: a missing comma, a trailing comma after the last item, or a straight quote (\") inside text.";
-    var line = source.slice(0, Number(m[1])).split("\n").length;
-    return "Look around line " + line + " of the JSON block (counting from the line with id=\"page-data\"). " +
-      "Common causes: a missing comma, a trailing comma after the last item, or a straight quote (\") inside text.";
-  }
+  // The page's text is a .js file, so a typo is a syntax error the browser reports
+  // in its console (with file and line) and window.PAGE never gets defined.
+  var MISSING_DATA_HINT =
+    "This page's text file in the data/ folder didn't load. Open the browser console " +
+    "(Cmd+Option+J in Chrome, Cmd+Option+K in Firefox) to see which line has the problem. " +
+    "Common causes: a missing comma, a missing closing bracket, or a straight quote (\") inside text.";
 
   /* ---------------- Go! ---------------- */
   function render() {
     var main = document.getElementById("main");
-    var source = document.getElementById("page-data");
-    if (!main || !source) return;
+    if (!main) return;
 
-    var page;
-    try {
-      page = JSON.parse(source.textContent);
-    } catch (err) {
-      showError(main, "Content error", err.message, jsonErrorHint(err, source.textContent));
+    var page = window.PAGE;
+    if (!page || typeof page !== "object") {
+      showError(main, "Content error", "window.PAGE is not defined.", MISSING_DATA_HINT);
       return;
     }
 
@@ -521,7 +517,7 @@
       var name = pickImageName(page);
       var image = images[name];
       if (!image) {
-        throw new Error('No image named "' + name + '" in js/site-data.js (check "image" in this page\'s JSON, or SITE.rotation).');
+        throw new Error('No image named "' + name + '" in js/site-data.js (check "image" in this page\'s data file, or SITE.rotation).');
       }
 
       main.append(viewscreen(page, image));

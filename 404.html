@@ -22,6 +22,7 @@
 
   <!-- 4. Scripts. "defer" = run after the HTML is read, in this order. -->
   <script src="js/site-data.js" defer></script>
+  <script src="data/404.js" defer></script>
   <script src="js/images.js" defer></script>
   <script src="js/psf-star.js" defer></script>
   <script src="js/render.js" defer></script>
@@ -30,49 +31,7 @@
   <script src="js/theme-toggle.js" defer></script>
 </head>
 <body>
-<!-- ================================================================
-     PAGE CONTENT — EDIT TEXT BELOW
-     This block is JSON: keep the "quotes", and put a comma between
-     items but NOT after the last one. See README.md for every field.
-     ================================================================ -->
-<script type="application/json" id="page-data">
-{
-  "title": "Signal Lost",
-  "kicker": "Error 404 · No carrier",
-  "intro": "That page isn't in the star catalog. It may have moved, or the link may be mistyped.",
-  "image": "rotate",
-  "sections": [
-    {
-      "id": "recover",
-      "label": "Set a New Course",
-      "type": "cards",
-      "items": [
-        {
-          "meta": "Sector 00",
-          "title": "Home",
-          "href": "index.html"
-        },
-        {
-          "meta": "Sector 02",
-          "title": "Research",
-          "href": "research.html"
-        },
-        {
-          "meta": "Sector 03",
-          "title": "Publications",
-          "href": "publications.html"
-        },
-        {
-          "meta": "Sector 04",
-          "title": "Computing",
-          "href": "computing.html"
-        }
-      ]
-    }
-  ]
-}
-</script>
-<!-- ======================= END OF PAGE CONTENT ===================== -->
+<!-- Page text lives in data/404.js (edit that file to change what this page says). -->
 
   <a class="skip-link" href="#main">Skip to content</a>
 

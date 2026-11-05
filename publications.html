@@ -22,6 +22,7 @@
 
   <!-- 4. Scripts. "defer" = run after the HTML is read, in this order. -->
   <script src="js/site-data.js" defer></script>
+  <script src="data/publications.js" defer></script>
   <script src="js/images.js" defer></script>
   <script src="js/psf-star.js" defer></script>
   <script src="js/render.js" defer></script>
@@ -30,60 +31,7 @@
   <script src="js/theme-toggle.js" defer></script>
 </head>
 <body>
-<!-- ================================================================
-     PAGE CONTENT — EDIT TEXT BELOW
-     This block is JSON: keep the "quotes", and put a comma between
-     items but NOT after the last one. See README.md for every field.
-     ================================================================ -->
-<script type="application/json" id="page-data">
-{
-  "title": "Publications",
-  "kicker": "Sector 03 · Archive",
-  "intro": "Your full list is always on [NASA ADS](https://ui.adsabs.harvard.edu/). (Placeholder entries below.)",
-  "image": "rotate",
-  "sections": [
-    {
-      "id": "refereed",
-      "label": "Refereed",
-      "type": "pubs",
-      "items": [
-        {
-          "year": 2026,
-          "authors": "Coleman, M., Collaborator, A., & Collaborator, B.",
-          "title": "Placeholder: title of a first-author paper",
-          "venue": "Journal Name, vol, page"
-        },
-        {
-          "year": 2025,
-          "authors": "Collaborator, A., Coleman, M., & Collaborator, C.",
-          "title": "Placeholder: title of a co-authored paper",
-          "venue": "Journal Name, vol, page"
-        },
-        {
-          "year": 2024,
-          "authors": "Coleman, M. & Collaborator, D.",
-          "title": "Placeholder: an earlier paper",
-          "venue": "Journal Name, vol, page"
-        }
-      ]
-    },
-    {
-      "id": "other",
-      "label": "Proceedings & Software",
-      "type": "pubs",
-      "items": [
-        {
-          "year": 2025,
-          "authors": "Coleman, M.",
-          "title": "Placeholder: a conference proceeding or software release",
-          "venue": "Venue"
-        }
-      ]
-    }
-  ]
-}
-</script>
-<!-- ======================= END OF PAGE CONTENT ===================== -->
+<!-- Page text lives in data/publications.js (edit that file to change what this page says). -->
 
   <a class="skip-link" href="#main">Skip to content</a>
 

@@ -22,6 +22,7 @@
 
   <!-- 4. Scripts. "defer" = run after the HTML is read, in this order. -->
   <script src="js/site-data.js" defer></script>
+  <script src="data/about.js" defer></script>
   <script src="js/images.js" defer></script>
   <script src="js/psf-star.js" defer></script>
   <script src="js/render.js" defer></script>
@@ -30,88 +31,7 @@
   <script src="js/theme-toggle.js" defer></script>
 </head>
 <body>
-<!-- ================================================================
-     PAGE CONTENT — EDIT TEXT BELOW
-     This block is JSON: keep the "quotes", and put a comma between
-     items but NOT after the last one. See README.md for every field.
-     ================================================================ -->
-<script type="application/json" id="page-data">
-{
-  "title": "About",
-  "kicker": "Sector 01 · Personnel file",
-  "intro": "Computational astrophysicist and HPC specialist.",
-  "image": "rotate",
-  "sections": [
-    {
-      "id": "bio",
-      "label": "Bio",
-      "type": "text",
-      "paragraphs": [
-        "Placeholder bio — replace with your own. I'm a computational astrophysicist who works where astrophysics meets high-performance computing: writing, running, and speeding up large simulations.",
-        "These days I'm a *Performance Tuning Analyst*, helping researchers make their codes run faster on modern clusters. See the [Computing](computing.html) page for more."
-      ]
-    },
-    {
-      "id": "path",
-      "label": "Flight Path",
-      "type": "timeline",
-      "items": [
-        {
-          "when": "Present",
-          "title": "Performance Tuning Analyst",
-          "where": "Your institution",
-          "text": "Profiling and optimizing research software on HPC systems."
-        },
-        {
-          "when": "Year – Year",
-          "title": "Postdoctoral Researcher",
-          "where": "Institution",
-          "text": "Placeholder: what you worked on."
-        },
-        {
-          "when": "Year",
-          "title": "Ph.D., Astrophysics",
-          "where": "University",
-          "text": "Thesis: *Placeholder thesis title*."
-        }
-      ]
-    },
-    {
-      "id": "interests",
-      "label": "Interests",
-      "type": "cards",
-      "items": [
-        {
-          "title": "Astrophysical simulation",
-          "text": "Placeholder: numerical methods and the physics they capture.",
-          "tags": [
-            "Hydrodynamics",
-            "MHD"
-          ]
-        },
-        {
-          "title": "Performance engineering",
-          "text": "Placeholder: making scientific code fast and scalable.",
-          "tags": [
-            "Profiling",
-            "GPUs"
-          ]
-        },
-        {
-          "title": "Astrophotography",
-          "text": "Placeholder: the pictures that make it all worth it.",
-          "tags": [
-            "HST",
-            "JWST",
-            "Rubin"
-          ]
-        }
-      ]
-    }
-  ]
-}
-</script>
-<!-- ======================= END OF PAGE CONTENT ===================== -->
+<!-- Page text lives in data/about.js (edit that file to change what this page says). -->
 
   <a class="skip-link" href="#main">Skip to content</a>
 
