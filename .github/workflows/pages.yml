@@ -1,5 +1,9 @@
 # Deploy the site to GitHub Pages.
 #
+# A push to main first runs the checks (checks.yml) and deploys only if they all
+# pass.  To deploy by hand regardless (Actions -> Deploy site -> Run workflow on
+# main), tick "skip_checks".  Other branches (e.g. dev) only run checks.yml.
+#
 # The site itself needs no build. The one generated piece is nojs/, the
 # text-only copy of each page for visitors with JavaScript turned off. It is
 # git-ignored, so this workflow builds it (tools/build_nojs.py) and then
@@ -13,6 +17,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      skip_checks:
+        description: Deploy without running the checks first
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -25,7 +34,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  checks:
+    if: ${{ !inputs.skip_checks }}
+    uses: ./.github/workflows/checks.yml
+
   deploy:
+    needs: checks
+    # A skipped "checks" (skip_checks ticked) still deploys; a failed one does not.
+    # Only ever deploy main, even if the workflow is run by hand from another branch.
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && contains(fromJSON('["success", "skipped"]'), needs.checks.result) }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages

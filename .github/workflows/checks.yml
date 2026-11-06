@@ -1,0 +1,35 @@
+# Lint and style checks: the same thing as running `uv run tools/check.py` locally
+# (ruff, ESLint, html-validate, and a freshness check of the generated nojs/ pages).
+name: Checks
+
+on:
+  push:
+    branches: [dev]    # main runs these checks from pages.yml, as the gate before deploying
+  pull_request:
+  workflow_dispatch:   # "Run workflow" button, on any branch
+  workflow_call:       # used by pages.yml
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node is used by build_nojs.py (to read the data/*.js files) and by the ESLint/html-validate checks.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Installs the Python and the locked ruff/numpy/pillow from pyproject.toml + uv.lock.
+      - uses: astral-sh/setup-uv@v6
+
+      # nojs/ is git-ignored, so generate it first; the checks then validate the pages and
+      # confirm the generator still runs cleanly.
+      - name: Build the text-only pages
+        run: uv run --locked tools/build_nojs.py
+
+      - name: Run all checks
+        run: uv run --locked tools/check.py
