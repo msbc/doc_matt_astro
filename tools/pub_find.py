@@ -3,6 +3,7 @@
 
     uv run tools/pub_find.py                 print BibTeX to the terminal
     uv run tools/pub_find.py -o pubs.bib     save it to a file
+    uv run tools/pub_find.py -f apj          ApJ-style citations (also: bibtex, bibcodes, dict)
 
 The API token is NOT stored in this file.  It is looked up, in order, from:
   1. the --token command-line flag (note: visible in shell history and `ps`)
@@ -22,15 +23,19 @@ Structure
                       a SciX library)
   PublicationFinder   merges the sources, fetches BibTeX, drops ignored entries,
                       sorts newest first
+  OutputFormat        renders the Publications as text; one subclass per --format
 """
 
 import argparse
 import os
+import pprint
+import re
 import sys
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NamedTuple
 
 import requests
 
@@ -224,6 +229,38 @@ class OrcidClient:
         return [OrcidWork.from_group(g) for g in response.json()["group"]]
 
 
+def tex_to_text(text):
+    """Light LaTeX clean-up for BibTeX values: accents, braces, ties.  Not a full converter.
+
+    Text between $...$ is math and is left alone.
+    """
+    parts = text.split("$")
+    for i in range(0, len(parts), 2):  # even-numbered parts are outside math
+        part = re.sub(r"\\[`'^\"~=.uvHcdbk]\s*\{?\\?([A-Za-z])\}?", r"\1", parts[i])  # \'e, \={\i}, ...
+        part = part.replace("\\&", "&").replace("~", " ")
+        parts[i] = re.sub(r"[{}]", "", part)
+    return "$".join(parts).strip()
+
+
+class Author(NamedTuple):
+    last: str
+    given: str = ""
+
+    @property
+    def initials(self):
+        """ "Matthew S.~B." -> "M. S. B."; hyphenated parts keep the hyphen ("T.-H.")."""
+        tokens = self.given.replace("~", " ").split()
+        return " ".join("-".join(f"{part[0]}." for part in tok.split("-") if part) for tok in tokens)
+
+    @property
+    def last_initials(self):
+        return f"{self.last}, {self.initials}" if self.initials else self.last
+
+    @property
+    def last_first(self):
+        return f"{self.last}, {self.given}" if self.given else self.last
+
+
 @dataclass
 class Publication:
     """One BibTeX entry."""
@@ -261,6 +298,56 @@ class Publication:
         """Year, month, then arXiv id and DOI as tie-breakers."""
         parts = [self.fields["year"], self.month_number, self.fields.get("eprint", ""), self.fields.get("doi", "")]
         return "_".join(parts)
+
+    def get(self, key, default=""):
+        """A field with its BibTeX quoting/braces and LaTeX removed."""
+        value = self.fields.get(key)
+        if value is None:
+            return default
+        value = value.strip()
+        if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
+            value = value[1:-1]
+        return tex_to_text(value)
+
+    @property
+    def authors(self):
+        raw = self.fields.get("author", "").strip()
+        if raw.startswith("{") and raw.endswith("}"):
+            raw = raw[1:-1]
+        authors = []
+        for name in re.split(r"\s+and\s+", raw):
+            last, _, given = tex_to_text(name).partition(",")
+            if last:
+                authors.append(Author(last.strip(), given.strip()))
+        return authors
+
+    @property
+    def journal_abbrev(self):
+        """ADS's standard abbreviation (ApJ, MNRAS, PhRvD, ...): it is baked into the bibcode."""
+        return self.bibcode[4:9].strip(".")
+
+    @property
+    def first_page(self):
+        """First page or article number ("490-517" -> "490")."""
+        return (self.get("pages") or self.get("eid")).split("-")[0].strip()
+
+    def to_dict(self):
+        month = self.month_number
+        return {
+            "bibcode": self.bibcode,
+            "type": self.entry_type.lower(),
+            "authors": [a.last_first for a in self.authors],
+            "title": self.get("title") or None,
+            "journal": self.journal_abbrev,
+            "year": self.year,
+            "month": int(month) or None,
+            "volume": self.get("volume") or None,
+            "issue": self.get("number") or None,
+            "page": self.first_page or None,
+            "doi": self.get("doi") or None,
+            "arxiv": self.get("eprint") or None,
+            "url": self.get("adsurl") or None,
+        }
 
 
 class PublicationSource(ABC):
@@ -370,12 +457,89 @@ class PublicationFinder:
                 pubs[pub.bibcode] = pub
         return sorted(pubs.values(), key=lambda p: p.sort_key, reverse=True)
 
-    @staticmethod
-    def to_bibtex(publications):
+
+class OutputFormat(ABC):
+    """Turns a list of Publications into text.  `name` is the --format value."""
+
+    name = ""
+
+    def __init__(self, max_authors=None):
+        self.max_authors = max_authors
+
+    @abstractmethod
+    def render(self, publications) -> str:
+        """Return the text, ending in a newline."""
+
+
+class BibtexFormat(OutputFormat):
+    name = "bibtex"
+
+    def render(self, publications):
         return "\n\n".join(p.bibtex for p in publications).strip() + "\n"
 
 
-def main(fn=None, quiet=None, token=None, token_file=None, min_year=MIN_YEAR, library=MY_LIBRARY):
+class BibcodesFormat(OutputFormat):
+    name = "bibcodes"
+
+    def render(self, publications):
+        return "".join(f"{p.bibcode}\n" for p in publications)
+
+
+class DictFormat(OutputFormat):
+    """A Python literal: a list of dicts, so the output can be pasted into code or ast.literal_eval'd."""
+
+    name = "dict"
+
+    def render(self, publications):
+        return pprint.pformat([p.to_dict() for p in publications], sort_dicts=False, width=110) + "\n"
+
+
+class ApjFormat(OutputFormat):
+    """One ApJ-style reference per line, e.g.
+
+        Vartanyan, D., Coleman, M. S. B., & Burrows, A. 2022, MNRAS, 510, 4689
+
+    `max_authors`: list only the first N authors followed by "et al." (None = all).
+    """
+
+    name = "apj"
+
+    def authors(self, pub):
+        names = [a.last_initials for a in pub.authors]
+        if self.max_authors and len(names) > self.max_authors:
+            return ", ".join(names[: self.max_authors] + ["et al."])
+        if len(names) <= 1:
+            return "".join(names)
+        return ", ".join(names[:-1]) + ", & " + names[-1]
+
+    def source(self, pub):
+        """Where it appeared: journal/volume/page, a thesis, or an arXiv preprint."""
+        if pub.entry_type.lower() == "phdthesis":
+            return ", ".join(filter(None, ["PhD thesis", pub.get("school")]))
+        if pub.journal_abbrev == "arXiv":
+            return f"arXiv:{pub.get('eprint')}"
+        volume = pub.get("volume")
+        if volume == str(pub.year):  # meeting abstracts use the year as the "volume"
+            volume = ""
+        return ", ".join(filter(None, [pub.journal_abbrev, volume, pub.first_page]))
+
+    def render(self, publications):
+        return "".join(f"{self.authors(p)} {p.year}, {self.source(p)}\n" for p in publications)
+
+
+FORMATS = {cls.name: cls for cls in (BibtexFormat, BibcodesFormat, DictFormat, ApjFormat)}
+
+
+def main(
+    fn=None,
+    quiet=None,
+    token=None,
+    token_file=None,
+    min_year=MIN_YEAR,
+    library=MY_LIBRARY,
+    fmt="bibtex",
+    max_authors=None,
+):
     client = SciXClient(token, token_file)
     orcid_source = OrcidRegistrySource(client, OrcidClient(), MY_ORCID)
     finder = PublicationFinder(
@@ -399,9 +563,10 @@ def main(fn=None, quiet=None, token=None, token_file=None, min_year=MIN_YEAR, li
         sys.exit("No publications found.")
     if fn and quiet is None:
         quiet = True
-    text = finder.to_bibtex(publications)
+    formatter = FORMATS[fmt](max_authors=max_authors)
+    text = formatter.render(publications)
     if not quiet:
-        print(text)
+        print(text, end="")
     if fn:
         Path(fn).write_text(text)
     return publications
@@ -423,8 +588,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--library", "-l", default=MY_LIBRARY, help="SciX library id or URL to include (default: %(default)s)."
     )
+    parser.add_argument(
+        "--format", "-f", choices=sorted(FORMATS), default="bibtex", help="Output format (default: %(default)s)."
+    )
+    parser.add_argument(
+        "--max-authors", type=int, metavar="N", help='With -f apj: list only the first N authors, then "et al."'
+    )
     parser.add_argument("--quiet", "-q", action="store_true", default=None, help="Suppress console output.")
     args = parser.parse_args()
+    if args.max_authors is not None and args.format != "apj":
+        parser.error("--max-authors only applies to --format apj")
     main(
         fn=args.output,
         quiet=args.quiet,
@@ -432,4 +605,6 @@ if __name__ == "__main__":
         token_file=args.token_file,
         min_year=args.min_year,
         library=args.library,
+        fmt=args.format,
+        max_authors=args.max_authors,
     )
