@@ -18,7 +18,8 @@ Structure
   OrcidWork           one entry of that list, with its identifiers
   Publication         one BibTeX entry, parsed, with a sort key
   PublicationSource   something that yields bibcodes; subclass it to add a way of
-                      finding papers (co-author search, SciX ORCID tags, ORCID registry)
+                      finding papers (co-author search, SciX ORCID tags, ORCID registry,
+                      a SciX library)
   PublicationFinder   merges the sources, fetches BibTeX, drops ignored entries,
                       sorts newest first
 """
@@ -46,13 +47,51 @@ PIS = [
 # Your ORCID is the most precise filter.
 MY_ORCID = "0000-0001-5939-5957"
 
+# My "My Publications" library on SciX (https://scixplorer.org/user/libraries/<id>).
+MY_LIBRARY = "GTuDTOy9Qx6mHB1Vk5aquQ"
+
 # Ignore list: publications to skip (e.g., non-refereed)
 IGNORE = ["2021arXiv211100022C", "2000ccdc.data.5353B"]
 
 # Skip publications from before this year (None = no limit).
 MIN_YEAR = 2014
 
+TIMEOUT = 60  # seconds, for every request
+NOT_FOUND_STATUSES = (404, 500)
+
 MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+
+
+class ApiError(Exception):
+    """A request to SciX or ORCID failed; the message is meant to be shown to the user."""
+
+
+def call(send, url, service, not_found=None, **kwargs):
+    """Make a request with `send` (e.g. session.get) and return the response.
+
+    Network problems and HTTP errors become an ApiError with a readable message.
+    `not_found` is the message for statuses that mean "no such thing" (404, and
+    SciX libraries answer 500 for an unknown id), e.g. "SciX library 'abc' not found".
+    """
+    try:
+        response = send(url, timeout=TIMEOUT, **kwargs)
+    except requests.exceptions.Timeout:
+        raise ApiError(f"{service} did not answer within {TIMEOUT} seconds.") from None
+    except requests.exceptions.RequestException as exc:
+        raise ApiError(f"Could not reach {service} ({type(exc).__name__}). Check your network connection.") from None
+    status = response.status_code
+    if response.ok:
+        return response
+    if status in (401, 403) and service == "SciX":
+        raise ApiError(
+            f"SciX rejected the API token (HTTP {status}). Check --token, --token-file, "
+            "SCIX_API_TOKEN or ~/.ads/dev_key, and that the token hasn't been revoked."
+        )
+    if status == 429:
+        raise ApiError(f"{service} rate limit reached (HTTP 429). Wait a while and try again.")
+    if not_found and status in NOT_FOUND_STATUSES:
+        raise ApiError(f"{not_found} (HTTP {status}).")
+    raise ApiError(f"{service} request failed: HTTP {status} {response.reason}.")
 
 
 class SciXClient:
@@ -63,7 +102,6 @@ class SciXClient:
     TOKEN_ENV_VARS = ("SCIX_API_TOKEN", "ADS_DEV_KEY")
     TOKEN_FILE = Path.home() / ".ads" / "dev_key"
     MAX_ROWS = 2000  # the API returns only 10 rows unless asked for more
-    TIMEOUT = 60
 
     def __init__(self, token=None, token_file=None):
         self.session = requests.Session()
@@ -98,12 +136,12 @@ class SciXClient:
 
     def search(self, query):
         """Return the bibcodes matching a SciX/ADS query string."""
-        response = self.session.get(
+        response = call(
+            self.session.get,
             f"{self.BASE_URL}/search/query",
+            "SciX",
             params={"q": query, "fl": "bibcode", "rows": self.MAX_ROWS},
-            timeout=self.TIMEOUT,
         )
-        response.raise_for_status()
         return [doc["bibcode"] for doc in response.json()["response"]["docs"]]
 
     def lookup(self, identifiers, chunk=50):
@@ -116,14 +154,30 @@ class SciXClient:
             found.extend(self.search(f"identifier:({terms})"))
         return found
 
+    def library_bibcodes(self, library_id, page=100):
+        """Return the bibcodes in a SciX library (one you own, or a public one)."""
+        bibcodes = []
+        while True:
+            response = call(
+                self.session.get,
+                f"{self.BASE_URL}/biblib/libraries/{library_id}",
+                "SciX",
+                not_found=f"SciX library '{library_id}' not found, or not visible to this token",
+                params={"start": len(bibcodes), "rows": page},
+            )
+            data = response.json()
+            bibcodes.extend(data["documents"])
+            if not data["documents"] or len(bibcodes) >= data["metadata"]["num_documents"]:
+                return bibcodes
+
     def export_bibtex(self, bibcodes):
         """Return one BibTeX string covering all the given bibcodes."""
-        response = self.session.post(
+        response = call(
+            self.session.post,
             f"{self.BASE_URL}/export/bibtex",
+            "SciX",
             json={"bibcode": list(bibcodes)},
-            timeout=self.TIMEOUT,
         )
-        response.raise_for_status()
         return response.json()["export"]
 
 
@@ -158,15 +212,15 @@ class OrcidClient:
     """Reads a public ORCID record (no authentication needed)."""
 
     BASE_URL = "https://pub.orcid.org/v3.0"
-    TIMEOUT = 60
 
     def works(self, orcid):
-        response = requests.get(
+        response = call(
+            requests.get,
             f"{self.BASE_URL}/{orcid}/works",
+            "ORCID",
+            not_found=f"ORCID record '{orcid}' not found",
             headers={"Accept": "application/json"},
-            timeout=self.TIMEOUT,
         )
-        response.raise_for_status()
         return [OrcidWork.from_group(g) for g in response.json()["group"]]
 
 
@@ -245,6 +299,18 @@ class SciXOrcidSource(PublicationSource):
         return self.client.search(f'orcid:"{self.orcid}"')
 
 
+class LibrarySource(PublicationSource):
+    """Every paper in a SciX library."""
+
+    def __init__(self, client, library):
+        self.client = client
+        # Accept either the bare id or the full https://scixplorer.org/user/libraries/<id> URL.
+        self.library_id = library.strip().rstrip("/").rsplit("/", 1)[-1]
+
+    def find(self) -> Iterable[str]:
+        return self.client.library_bibcodes(self.library_id)
+
+
 class OrcidRegistrySource(PublicationSource):
     """Works listed on my ORCID record.
 
@@ -309,16 +375,24 @@ class PublicationFinder:
         return "\n\n".join(p.bibtex for p in publications).strip() + "\n"
 
 
-def main(fn=None, quiet=None, token=None, token_file=None, min_year=MIN_YEAR):
+def main(fn=None, quiet=None, token=None, token_file=None, min_year=MIN_YEAR, library=MY_LIBRARY):
     client = SciXClient(token, token_file)
     orcid_source = OrcidRegistrySource(client, OrcidClient(), MY_ORCID)
     finder = PublicationFinder(
         client,
-        [CoauthorSource(client, ME, PIS), SciXOrcidSource(client, MY_ORCID), orcid_source],
+        [
+            CoauthorSource(client, ME, PIS),
+            SciXOrcidSource(client, MY_ORCID),
+            orcid_source,
+            LibrarySource(client, library),
+        ],
         ignore=IGNORE,
         min_year=min_year,
     )
-    publications = finder.publications()
+    try:
+        publications = finder.publications()
+    except ApiError as exc:
+        sys.exit(f"Error: {exc}")
     for work in orcid_source.unresolved:
         print(f"ORCID work not found in SciX: {work.year} {work.title}", file=sys.stderr)
     if not publications:
@@ -346,6 +420,16 @@ if __name__ == "__main__":
         default=MIN_YEAR,
         help="Skip publications before this year (default: %(default)s).",
     )
+    parser.add_argument(
+        "--library", "-l", default=MY_LIBRARY, help="SciX library id or URL to include (default: %(default)s)."
+    )
     parser.add_argument("--quiet", "-q", action="store_true", default=None, help="Suppress console output.")
     args = parser.parse_args()
-    main(fn=args.output, quiet=args.quiet, token=args.token, token_file=args.token_file, min_year=args.min_year)
+    main(
+        fn=args.output,
+        quiet=args.quiet,
+        token=args.token,
+        token_file=args.token_file,
+        min_year=args.min_year,
+        library=args.library,
+    )
