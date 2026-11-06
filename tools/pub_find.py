@@ -14,9 +14,11 @@ Get a token from https://scixplorer.org/user/settings/token
 
 Structure
   SciXClient          talks to the SciX API (search, BibTeX export); owns the token
+  OrcidClient         reads my public works list from the ORCID registry (no token)
+  OrcidWork           one entry of that list, with its identifiers
   Publication         one BibTeX entry, parsed, with a sort key
   PublicationSource   something that yields bibcodes; subclass it to add a way of
-                      finding papers (e.g. a future ORCID-registry source)
+                      finding papers (co-author search, SciX ORCID tags, ORCID registry)
   PublicationFinder   merges the sources, fetches BibTeX, drops ignored entries,
                       sorts newest first
 """
@@ -26,7 +28,7 @@ import os
 import sys
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import requests
@@ -104,6 +106,16 @@ class SciXClient:
         response.raise_for_status()
         return [doc["bibcode"] for doc in response.json()["response"]["docs"]]
 
+    def lookup(self, identifiers, chunk=50):
+        """Return the bibcodes of records matching any identifier (DOI, "arXiv:...", bibcode)."""
+        identifiers = sorted(set(identifiers))
+        found = []
+        for i in range(0, len(identifiers), chunk):
+            terms = " OR ".join(f'"{v}"' for v in identifiers[i : i + chunk])
+            # (`doi:(...)` with a group is a syntax error in SciX; `identifier:(...)` works and matches DOIs too.)
+            found.extend(self.search(f"identifier:({terms})"))
+        return found
+
     def export_bibtex(self, bibcodes):
         """Return one BibTeX string covering all the given bibcodes."""
         response = self.session.post(
@@ -113,6 +125,49 @@ class SciXClient:
         )
         response.raise_for_status()
         return response.json()["export"]
+
+
+@dataclass
+class OrcidWork:
+    """One work from an ORCID record, with the identifiers needed to find it in SciX."""
+
+    title: str
+    year: str
+    bibcodes: list = field(default_factory=list)
+    dois: list = field(default_factory=list)
+    arxiv_ids: list = field(default_factory=list)
+
+    @classmethod
+    def from_group(cls, group):
+        """Build from one entry of the ORCID `group` list (duplicates already merged by ORCID)."""
+        summary = group["work-summary"][0]
+        date = summary.get("publication-date") or {}
+        work = cls(
+            title=summary["title"]["title"]["value"],
+            year=(date.get("year") or {}).get("value", ""),
+        )
+        targets = {"bibcode": work.bibcodes, "doi": work.dois, "arxiv": work.arxiv_ids}
+        for ext in group["external-ids"]["external-id"]:
+            # "self" means the work itself; "part-of" would be e.g. the proceedings volume.
+            if ext["external-id-relationship"] == "self" and ext["external-id-type"] in targets:
+                targets[ext["external-id-type"]].append(ext["external-id-value"].strip())
+        return work
+
+
+class OrcidClient:
+    """Reads a public ORCID record (no authentication needed)."""
+
+    BASE_URL = "https://pub.orcid.org/v3.0"
+    TIMEOUT = 60
+
+    def works(self, orcid):
+        response = requests.get(
+            f"{self.BASE_URL}/{orcid}/works",
+            headers={"Accept": "application/json"},
+            timeout=self.TIMEOUT,
+        )
+        response.raise_for_status()
+        return [OrcidWork.from_group(g) for g in response.json()["group"]]
 
 
 @dataclass
@@ -190,6 +245,37 @@ class SciXOrcidSource(PublicationSource):
         return self.client.search(f'orcid:"{self.orcid}"')
 
 
+class OrcidRegistrySource(PublicationSource):
+    """Works listed on my ORCID record.
+
+    A work that carries a bibcode is used as is; the rest are looked up in SciX by
+    DOI and arXiv id.  Works SciX can't match are kept in `unresolved`.
+    """
+
+    def __init__(self, client, orcid_client, orcid):
+        self.client = client
+        self.orcid_client = orcid_client
+        self.orcid = orcid.strip()
+        self.unresolved = []
+
+    def resolve(self, work):
+        """Return SciX bibcodes for one work ([] if SciX doesn't know it)."""
+        if work.bibcodes:
+            return work.bibcodes
+        return self.client.lookup(work.dois + [f"arXiv:{a}" for a in work.arxiv_ids])
+
+    def find(self) -> Iterable[str]:
+        self.unresolved = []
+        found = set()
+        for work in self.orcid_client.works(self.orcid):
+            bibcodes = self.resolve(work)
+            if bibcodes:
+                found.update(bibcodes)
+            else:
+                self.unresolved.append(work)
+        return found
+
+
 class PublicationFinder:
     """Combine sources into a sorted, de-duplicated list of Publications."""
 
@@ -225,13 +311,16 @@ class PublicationFinder:
 
 def main(fn=None, quiet=None, token=None, token_file=None, min_year=MIN_YEAR):
     client = SciXClient(token, token_file)
+    orcid_source = OrcidRegistrySource(client, OrcidClient(), MY_ORCID)
     finder = PublicationFinder(
         client,
-        [CoauthorSource(client, ME, PIS), SciXOrcidSource(client, MY_ORCID)],
+        [CoauthorSource(client, ME, PIS), SciXOrcidSource(client, MY_ORCID), orcid_source],
         ignore=IGNORE,
         min_year=min_year,
     )
     publications = finder.publications()
+    for work in orcid_source.unresolved:
+        print(f"ORCID work not found in SciX: {work.year} {work.title}", file=sys.stderr)
     if not publications:
         sys.exit("No publications found.")
     if fn and quiet is None:
