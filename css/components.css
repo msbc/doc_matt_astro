@@ -157,6 +157,8 @@
   background: #03050A;
 }
 .viewscreen--hero { min-height: clamp(22rem, 62vh, 38rem); }
+/* Text-only (nojs/) pages have no photo, so no photo-sized gap. Doubled class beats the hero/phone rules. */
+.viewscreen.viewscreen--text { min-height: 0; padding-top: 0; }
 
 /* Each photo is a "layer" filling the viewscreen. When the photo rotates,
    the new layer fades in on top of the old one, which is then removed. */

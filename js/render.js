@@ -107,7 +107,7 @@
           el("h3", null, [title]),
           item.before || item.after ? speedup(item) : null,
           item.text ? el("p", null, [inline(item.text)]) : null,
-          item.tags ? el("ul", { class: "tags", "aria-label": "Tags" },
+          item.tags ? el("ul", { class: "tags" },
             item.tags.map(function (t) { return el("li", { text: t }); })) : null,
         ]);
         list.append(el("li", null, [card]));

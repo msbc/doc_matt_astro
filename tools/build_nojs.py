@@ -120,7 +120,7 @@ class Builder:
                 parts.append("<p>{}</p>".format(self.inline(item["text"])))
             if item.get("tags"):
                 tags = "".join(f"<li>{esc(t)}</li>" for t in item["tags"])
-                parts.append(f'<ul class="tags" aria-label="Tags">{tags}</ul>')
+                parts.append(f'<ul class="tags">{tags}</ul>')
             lis.append('<li><article class="card">\n{}\n</article></li>'.format("\n".join(parts)))
         return '<ul class="cards">\n{}\n</ul>'.format("\n".join(lis))
 
@@ -250,7 +250,7 @@ class Builder:
             '<main id="main" tabindex="-1">\n'
             '<div class="noscript-panel"><p>This is the text-only version of this page. '
             '<a href="../{}.html">Open the full site</a> (needs JavaScript).</p></div>\n'
-            '<div class="viewscreen{}" style="min-height:0;padding-top:0">\n'  # no photo, so no photo-sized gap
+            '<div class="viewscreen viewscreen--text{}">\n'
             '<div class="viewscreen-panel dark-island">\n{}\n</div>\n</div>\n'
             "{}\n</main>".format(stem, " viewscreen--hero" if home else "", "\n".join(panel), sections)
         )
