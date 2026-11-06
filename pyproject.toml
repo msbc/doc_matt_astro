@@ -1,0 +1,23 @@
+# Python tooling for the scripts in tools/. The site itself needs none of this.
+#
+#   uv run tools/check.py            run every lint/style check
+#   uv run tools/make_sizes.py ...   run an image tool (needs numpy + pillow)
+#
+# Ruff's own settings live in .ruff.toml.
+[project]
+name = "doc-matt-astro-tools"
+version = "0"
+description = "Build and check scripts for the Doc Matt Astro site"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pillow",
+]
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+
+[tool.uv]
+package = false  # scripts only, nothing to build or install
