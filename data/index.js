@@ -9,7 +9,7 @@
 window.PAGE = {
   "home": true,
   "kicker": "Matt Coleman · Computational Astrophysicist & HPC Specialist",
-  "intro": "I build and tune the simulations that turn supercomputers into telescopes — from astrophysical fluid dynamics to squeezing the last few percent out of parallel code.",
+  "intro": "I help researchers turn computing power into scientific insight—and use it myself to explore the fluid dynamics of the universe.",
   "image": "rotate",
   "sections": [
     {
@@ -21,7 +21,7 @@ window.PAGE = {
           "meta": "Sector 02",
           "title": "Research",
           "href": "research.html",
-          "text": "Simulations, methods, and the astrophysical questions behind them."
+          "text": "My research uses computational hydrodynamics to study astrophysical systems, particularly accretion disks, compact objects, and core-collapse supernovae."
         },
         {
           "meta": "Sector 03",
