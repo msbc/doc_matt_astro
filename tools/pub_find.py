@@ -11,7 +11,7 @@ The API token is NOT stored in this file.  It is looked up, in order, from:
   2. the file named by --token-file (one line, the token)
   3. the SCIX_API_TOKEN environment variable
   4. the ADS_DEV_KEY environment variable (the older ADS name)
-  5. the file ~/.ads/dev_key (the usual ADS client location)
+  5. the file ~/.ads/dev_key (legacy location of the API token)
 Get a token from https://scixplorer.org/user/settings/token
 
 Structure
@@ -43,7 +43,7 @@ from typing import NamedTuple
 import requests
 
 # --- CONFIG: edit these ---
-# Use "Last, F. M." style as ADS expects (can be forgiving, but this helps).
+# Use "Last, F. M." style as SciX expects (can be forgiving, but this helps).
 ME = "Coleman, Matthew"  # e.g., "Coleman, Matthew S."
 PIS = [
     "Blaes, Omer",
@@ -360,7 +360,7 @@ class Publication:
 
     @property
     def journal_abbrev(self):
-        """ADS's standard abbreviation (ApJ, MNRAS, PhRvD, ...): it is baked into the bibcode."""
+        """The standard journal abbreviation (ApJ, MNRAS, PhRvD, ...): it is baked into the bibcode."""
         return self.bibcode[4:9].strip(".")
 
     @property
@@ -623,7 +623,7 @@ class SitePage:
             "authors": self.formatter.authors(pub),
             "title": title,
             "venue": pub.venue,
-            "ads": pub.bibcode,
+            "scix": pub.bibcode,
             "arxiv": arxiv,
             "doi": "" if pub.journal_abbrev == "arXiv" else pub.get("doi"),  # an arXiv DOI just repeats the arXiv link
         }

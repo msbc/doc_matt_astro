@@ -57,7 +57,7 @@ Every section has `"id"` (a short name for links, like `"case-studies"`), `"labe
 | `cards` | Grid of cards | `title`, `text`, `meta` (small label), `href` (makes the card a link), `tags` (list), `before`/`after`/`gain` (speedup readout) |
 | `timeline` | Dated list | `when`, `title`, `where`, `text` |
 | `stats` | Readout tiles | `label`, `value`, `note` |
-| `pubs` | Publication list with All/First-author filter | `year`, `authors`, `title`, `venue`, `ads` (bibcode or URL), `arxiv` (e.g. `2501.01234`), `doi`, `url` |
+| `pubs` | Publication list with All/First-author filter | `year`, `authors`, `title`, `venue`, `scix` (bibcode or URL), `arxiv` (e.g. `2501.01234`), `doi`, `url` |
 
 Your name is bolded in author lists automatically. Set the spelling(s) in `js/site-data.js` under `owner.pubNames`. Any paper whose author list *starts* with one of those spellings counts as first-author. List the longest spelling first (`"Coleman, M. S. B."` before `"Coleman, M."`), or only the shorter prefix is bolded.
 
@@ -65,7 +65,7 @@ Adding a section to the data file is all it takes: it appears on the page and in
 
 ## Update the publications list (`tools/pub_find.py`)
 
-`publications.html` is filled in from SciX (the successor to NASA ADS) rather than typed by hand:
+`publications.html` is filled in from SciX rather than typed by hand:
 
 ```
 uv run tools/pub_find.py --site       # rewrites the paper lists in data/publications.js

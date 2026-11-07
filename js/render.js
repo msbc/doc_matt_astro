@@ -144,7 +144,7 @@
       return list;
     },
 
-    // "items": [{ "authors", "year", "title", "venue", "ads", "arxiv", "doi", "url" }]
+    // "items": [{ "authors", "year", "title", "venue", "scix", "arxiv", "doi", "url" }]
     pubs: function (sec) {
       var wrap = el("div");
       var items = sec.items || [];
@@ -152,7 +152,7 @@
 
       items.forEach(function (pub) {
         var links = [];
-        if (pub.ads)   links.push(["ADS", /^https?:/.test(pub.ads) ? pub.ads : "https://ui.adsabs.harvard.edu/abs/" + pub.ads]);
+        if (pub.scix)  links.push(["SciX", /^https?:/.test(pub.scix) ? pub.scix : "https://scixplorer.org/abs/" + pub.scix + "/abstract"]);
         if (pub.arxiv) links.push(["arXiv", "https://arxiv.org/abs/" + pub.arxiv]);
         if (pub.doi)   links.push(["DOI", "https://doi.org/" + pub.doi]);
         if (pub.url)   links.push(["Link", pub.url]);

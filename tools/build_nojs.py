@@ -162,9 +162,9 @@ class Builder:
         for pub in sec.get("items", []):
             authors = str(pub.get("authors", ""))
             links = []
-            if pub.get("ads"):
-                ads = str(pub["ads"])
-                links.append(("ADS", ads if re.match(r"https?:", ads) else "https://ui.adsabs.harvard.edu/abs/" + ads))
+            if pub.get("scix"):
+                scix = str(pub["scix"])
+                links.append(("SciX", scix if re.match(r"https?:", scix) else "https://scixplorer.org/abs/" + scix + "/abstract"))
             if pub.get("arxiv"):
                 links.append(("arXiv", "https://arxiv.org/abs/" + str(pub["arxiv"])))
             if pub.get("doi"):
