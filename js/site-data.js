@@ -14,7 +14,9 @@ window.SITE = {
     name: "Matt Coleman",
     // How your name appears in author lists. Any author string that STARTS
     // with one of these counts as "first author"; every match is bolded.
-    pubNames: ["Coleman, M."],
+    // List the longest spelling first, or only the "Coleman, M." part of
+    // "Coleman, M. S. B." gets bolded.
+    pubNames: ["Coleman, M. S. B.", "Coleman, M."],
   },
 
   // The wordmark is "before" + PSF star + "after".

@@ -59,9 +59,26 @@ Every section has `"id"` (a short name for links, like `"case-studies"`), `"labe
 | `stats` | Readout tiles | `label`, `value`, `note` |
 | `pubs` | Publication list with All/First-author filter | `year`, `authors`, `title`, `venue`, `ads` (bibcode or URL), `arxiv` (e.g. `2501.01234`), `doi`, `url` |
 
-Your name is bolded in author lists automatically. Set the spelling(s) in `js/site-data.js` under `owner.pubNames`. Any paper whose author list *starts* with one of those spellings counts as first-author.
+Your name is bolded in author lists automatically. Set the spelling(s) in `js/site-data.js` under `owner.pubNames`. Any paper whose author list *starts* with one of those spellings counts as first-author. List the longest spelling first (`"Coleman, M. S. B."` before `"Coleman, M."`), or only the shorter prefix is bolded.
 
 Adding a section to the data file is all it takes: it appears on the page and in the section indicator (the chip in the bottom-right corner).
+
+## Update the publications list (`tools/pub_find.py`)
+
+`publications.html` is filled in from SciX (the successor to NASA ADS) rather than typed by hand:
+
+```
+uv run tools/pub_find.py --site       # rewrites the paper lists in data/publications.js
+```
+
+It needs a SciX API token (see the top of `tools/pub_find.py`; yours is in `~/.ads/dev_key`). Then run `python3 tools/build_nojs.py` and commit, as for any other text change.
+
+- **Only the regions between the `// pub_find:begin …` / `// pub_find:end …` comments in `data/publications.js` are rewritten.** The page title, intro, section labels and anything you add outside those comments are left alone. To list a paper SciX doesn't have, add an entry in the same `items` list but outside the comments.
+- **Sections:** `refereed` gets the papers SciX marks as refereed; `other` gets the rest (meeting abstracts, proceedings, preprints that were never published) plus dissertations, which SciX flags as refereed but which are always put in `other`.
+- **Preprint + published version, or two copies of a thesis, are listed once** (matched by title). The published record is kept and picks up the preprint's arXiv link. The script prints a `Note:` line for each merge.
+- **To hide a paper**, add its bibcode to `IGNORE` in `tools/pub_find.py`. Which papers are found at all is set by the config at the top of that file (ORCID, SciX library, advisor names, `MIN_YEAR`).
+- **Titles:** simple LaTeX like `$^{56}$Ni` becomes `⁵⁶Ni`. If a title has math the script can't convert, it prints a `Note:` and leaves the `$…$` in; extend `math_to_text` in `tools/pub_find.py` (a hand edit to `publications.js` would be overwritten).
+- `--site FILE` writes to another file; `-f apj` etc. still print citations to the terminal as before.
 
 ## Text-only version for visitors without JavaScript (`nojs/`)
 

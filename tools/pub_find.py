@@ -4,6 +4,7 @@
     uv run tools/pub_find.py                 print BibTeX to the terminal
     uv run tools/pub_find.py -o pubs.bib     save it to a file
     uv run tools/pub_find.py -f apj          ApJ-style citations (also: bibtex, bibcodes, dict)
+    uv run tools/pub_find.py --site          update the website's publications list (data/publications.js)
 
 The API token is NOT stored in this file.  It is looked up, in order, from:
   1. the --token command-line flag (note: visible in shell history and `ps`)
@@ -24,9 +25,11 @@ Structure
   PublicationFinder   merges the sources, fetches BibTeX, drops ignored entries,
                       sorts newest first
   OutputFormat        renders the Publications as text; one subclass per --format
+  SitePage            writes the Publications into the website's data/publications.js
 """
 
 import argparse
+import json
 import os
 import pprint
 import re
@@ -56,10 +59,13 @@ MY_ORCID = "0000-0001-5939-5957"
 MY_LIBRARY = "GTuDTOy9Qx6mHB1Vk5aquQ"
 
 # Ignore list: publications to skip (e.g., non-refereed)
-IGNORE = ["2021arXiv211100022C", "2000ccdc.data.5353B"]
+IGNORE = ["2021arXiv211100022C", "2000ccdc.data.5353B", "2017PhDT.......294C"]
 
 # Skip publications from before this year (None = no limit).
 MIN_YEAR = 2014
+
+# The website page that --site updates (relative paths are resolved from the current directory).
+SITE_FILE = Path(__file__).resolve().parent.parent / "data" / "publications.js"
 
 TIMEOUT = 60  # seconds, for every request
 NOT_FOUND_STATUSES = (404, 500)
@@ -139,25 +145,27 @@ class SciXClient:
             f"{cls.TOKEN_FILE} (get one at https://scixplorer.org/user/settings/token)."
         )
 
-    def search(self, query):
-        """Return the bibcodes matching a SciX/ADS query string."""
-        response = call(
-            self.session.get,
-            f"{self.BASE_URL}/search/query",
-            "SciX",
-            params={"q": query, "fl": "bibcode", "rows": self.MAX_ROWS},
-        )
+    def search(self, query, fq=None):
+        """Return the bibcodes matching a SciX/ADS query string (`fq`: an extra filter, e.g. "property:refereed")."""
+        params = {"q": query, "fl": "bibcode", "rows": self.MAX_ROWS}
+        if fq:
+            params["fq"] = fq
+        response = call(self.session.get, f"{self.BASE_URL}/search/query", "SciX", params=params)
         return [doc["bibcode"] for doc in response.json()["response"]["docs"]]
 
-    def lookup(self, identifiers, chunk=50):
+    def lookup(self, identifiers, chunk=50, fq=None):
         """Return the bibcodes of records matching any identifier (DOI, "arXiv:...", bibcode)."""
         identifiers = sorted(set(identifiers))
         found = []
         for i in range(0, len(identifiers), chunk):
             terms = " OR ".join(f'"{v}"' for v in identifiers[i : i + chunk])
             # (`doi:(...)` with a group is a syntax error in SciX; `identifier:(...)` works and matches DOIs too.)
-            found.extend(self.search(f"identifier:({terms})"))
+            found.extend(self.search(f"identifier:({terms})", fq))
         return found
+
+    def refereed(self, bibcodes):
+        """Return the subset of `bibcodes` that SciX marks as refereed."""
+        return set(self.lookup(bibcodes, fq="property:refereed"))
 
     def library_bibcodes(self, library_id, page=100):
         """Return the bibcodes in a SciX library (one you own, or a public one)."""
@@ -240,6 +248,35 @@ def tex_to_text(text):
         part = part.replace("\\&", "&").replace("~", " ")
         parts[i] = re.sub(r"[{}]", "", part)
     return "$".join(parts).strip()
+
+
+SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
+SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
+MATH_SYMBOLS = {
+    r"\odot": "☉",
+    r"\sim": "~",
+    r"\times": "×",
+    r"\alpha": "α",
+    r"\beta": "β",
+    r"\gamma": "γ",
+    r"\mu": "μ",
+}
+
+
+def math_to_text(text):
+    """Replace simple inline math with plain Unicode: "$^{56}$Ni" -> "⁵⁶Ni", "M$_\\odot$" -> "M☉".
+
+    Math this can't convert is left as it was ($...$ and all), so callers can spot it with `"$" in text`.
+    """
+
+    def convert(match):
+        body = re.sub(r"\^\{?([0-9+-]+)\}?", lambda m: m.group(1).translate(SUPERSCRIPT), match.group(1))
+        body = re.sub(r"_\{?([0-9+-]+)\}?", lambda m: m.group(1).translate(SUBSCRIPT), body)
+        for tex, char in MATH_SYMBOLS.items():
+            body = re.sub(rf"_?\{{?{re.escape(tex)}\}}?", char, body)
+        return match.group(0) if re.search(r"[\\^_{}]", body) else body.strip()
+
+    return re.sub(r"\$([^$]*)\$", convert, text)
 
 
 class Author(NamedTuple):
@@ -330,6 +367,18 @@ class Publication:
     def first_page(self):
         """First page or article number ("490-517" -> "490")."""
         return (self.get("pages") or self.get("eid")).split("-")[0].strip()
+
+    @property
+    def venue(self):
+        """Where it appeared: journal/volume/page, a thesis, or an arXiv preprint."""
+        if self.entry_type.lower() == "phdthesis":
+            return ", ".join(filter(None, ["PhD thesis", self.get("school")]))
+        if self.journal_abbrev == "arXiv":
+            return f"arXiv:{self.get('eprint')}"
+        volume = self.get("volume")
+        if volume == str(self.year):  # meeting abstracts use the year as the "volume"
+            volume = ""
+        return ", ".join(filter(None, [self.journal_abbrev, volume, self.first_page]))
 
     def to_dict(self):
         month = self.month_number
@@ -512,22 +561,106 @@ class ApjFormat(OutputFormat):
             return "".join(names)
         return ", ".join(names[:-1]) + ", & " + names[-1]
 
-    def source(self, pub):
-        """Where it appeared: journal/volume/page, a thesis, or an arXiv preprint."""
-        if pub.entry_type.lower() == "phdthesis":
-            return ", ".join(filter(None, ["PhD thesis", pub.get("school")]))
-        if pub.journal_abbrev == "arXiv":
-            return f"arXiv:{pub.get('eprint')}"
-        volume = pub.get("volume")
-        if volume == str(pub.year):  # meeting abstracts use the year as the "volume"
-            volume = ""
-        return ", ".join(filter(None, [pub.journal_abbrev, volume, pub.first_page]))
-
     def render(self, publications):
-        return "".join(f"{self.authors(p)} {p.year}, {self.source(p)}\n" for p in publications)
+        return "".join(f"{self.authors(p)} {p.year}, {p.venue}\n" for p in publications)
 
 
 FORMATS = {cls.name: cls for cls in (BibtexFormat, BibcodesFormat, DictFormat, ApjFormat)}
+
+
+def title_key(pub):
+    """The title reduced to lowercase letters and digits, so copies of the same work compare equal."""
+    return re.sub(r"[^a-z0-9]+", "", pub.get("title").lower())
+
+
+class SitePage:
+    """Writes the publications into the website's data/publications.js.
+
+    That file is edited by hand, except for the regions between marker comments:
+
+        // pub_find:begin refereed (...)
+        { ... },
+        // pub_find:end refereed
+
+    One region per name in SECTIONS ("refereed" and "other" = everything else).  Each run
+    replaces what is between the markers and touches nothing outside them, so the page's
+    title and intro, and any entries added by hand outside the markers, are kept.
+
+    A preprint and its published version, or two copies of a thesis, count as one work (same
+    title): the published record is listed, and takes over the preprint's arXiv link.
+    """
+
+    SECTIONS = ("refereed", "other")
+    REGION = re.compile(
+        r"^([ \t]*)// pub_find:begin (\w+)[^\n]*\n.*?^[ \t]*// pub_find:end \2[ \t]*$", re.MULTILINE | re.DOTALL
+    )
+
+    def __init__(self, path, client):
+        self.path = Path(path)
+        self.client = client
+        self.formatter = ApjFormat()  # for the author lists
+        self.notes = []  # things worth telling the user, filled in by update()
+
+    def merge_duplicates(self, publications):
+        """Return [(publication, arXiv id)], one per work, in the original order."""
+        groups = {}
+        for pub in publications:
+            groups.setdefault(title_key(pub), []).append(pub)
+        merged = {}
+        for group in groups.values():
+            best = next((p for p in group if p.journal_abbrev != "arXiv"), group[0])
+            arxiv = next((p.get("eprint") for p in [best, *group] if p.get("eprint")), "")
+            merged[best.bibcode] = arxiv.removeprefix("arXiv:")
+            self.notes += [f"merged {p.bibcode} into {best.bibcode}" for p in group if p is not best]
+        return [(p, merged[p.bibcode]) for p in publications if p.bibcode in merged]
+
+    def item(self, pub, arxiv):
+        title = math_to_text(pub.get("title"))
+        if "$" in title:
+            self.notes.append(f"{pub.bibcode}: the title still has LaTeX in it: {title}")
+        item = {
+            "year": pub.year,
+            "authors": self.formatter.authors(pub),
+            "title": title,
+            "venue": pub.venue,
+            "ads": pub.bibcode,
+            "arxiv": arxiv,
+            "doi": "" if pub.journal_abbrev == "arXiv" else pub.get("doi"),  # an arXiv DOI just repeats the arXiv link
+        }
+        return {key: value for key, value in item.items() if value}
+
+    def sections(self, publications):
+        """Return {section name: [item dicts]}."""
+        merged = self.merge_duplicates(publications)
+        refereed = self.client.refereed(p.bibcode for p, _ in merged)
+        sections = {name: [] for name in self.SECTIONS}
+        for pub, arxiv in merged:
+            # SciX flags dissertations as refereed, but they aren't peer-reviewed papers.
+            is_refereed = pub.bibcode in refereed and pub.entry_type.lower() != "phdthesis"
+            sections["refereed" if is_refereed else "other"].append(self.item(pub, arxiv))
+        return sections
+
+    def update(self, publications):
+        """Rewrite the marker regions of the file.  Returns {section name: number of items}."""
+        sections = self.sections(publications)
+        text = self.path.read_text(encoding="utf-8")
+
+        def fill(match):
+            indent, name = match.groups()
+            if name not in sections:
+                sys.exit(f"Error: {self.path} has a pub_find region '{name}'; the known ones are {self.SECTIONS}.")
+            lines = [f"{indent}// pub_find:begin {name} (written by tools/pub_find.py; edits here are overwritten)"]
+            for item in sections[name]:
+                lines += (indent + line for line in (json.dumps(item, indent=2, ensure_ascii=False) + ",").split("\n"))
+            return "\n".join([*lines, f"{indent}// pub_find:end {name}"])
+
+        new_text = self.REGION.sub(fill, text)
+        missing = [name for name in self.SECTIONS if f"// pub_find:begin {name}" not in new_text]
+        if missing:
+            sys.exit(f"Error: {self.path} has no '// pub_find:begin {missing[0]}' ... '// pub_find:end' markers.")
+        if new_text != text:
+            self.path.write_text(new_text, encoding="utf-8")
+        return {name: len(items) for name, items in sections.items()}
 
 
 def main(
@@ -539,6 +672,7 @@ def main(
     library=MY_LIBRARY,
     fmt="bibtex",
     max_authors=None,
+    site=None,
 ):
     client = SciXClient(token, token_file)
     orcid_source = OrcidRegistrySource(client, OrcidClient(), MY_ORCID)
@@ -553,15 +687,22 @@ def main(
         ignore=IGNORE,
         min_year=min_year,
     )
+    page = SitePage(site, client) if site else None
     try:
         publications = finder.publications()
+        if publications and page:
+            counts = page.update(publications)
     except ApiError as exc:
         sys.exit(f"Error: {exc}")
     for work in orcid_source.unresolved:
         print(f"ORCID work not found in SciX: {work.year} {work.title}", file=sys.stderr)
     if not publications:
         sys.exit("No publications found.")
-    if fn and quiet is None:
+    if page:
+        for note in page.notes:
+            print(f"Note: {note}", file=sys.stderr)
+        print(f"Updated {site}: " + ", ".join(f"{n} {name}" for name, n in counts.items()) + ".", file=sys.stderr)
+    if (fn or site) and quiet is None:
         quiet = True
     formatter = FORMATS[fmt](max_authors=max_authors)
     text = formatter.render(publications)
@@ -594,6 +735,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max-authors", type=int, metavar="N", help='With -f apj: list only the first N authors, then "et al."'
     )
+    parser.add_argument(
+        "--site",
+        nargs="?",
+        const=SITE_FILE,
+        metavar="FILE",
+        help="Update the website's publications list in FILE instead of printing (default: %(const)s).",
+    )
     parser.add_argument("--quiet", "-q", action="store_true", default=None, help="Suppress console output.")
     args = parser.parse_args()
     if args.max_authors is not None and args.format != "apj":
@@ -607,4 +755,5 @@ if __name__ == "__main__":
         library=args.library,
         fmt=args.format,
         max_authors=args.max_authors,
+        site=args.site,
     )
