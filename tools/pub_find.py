@@ -41,12 +41,12 @@ import requests
 
 # --- CONFIG: edit these ---
 # Use "Last, F. M." style as ADS expects (can be forgiving, but this helps).
-ME = "Coleman, M"  # e.g., "Coleman, Matthew S."
+ME = "Coleman, Matthew"  # e.g., "Coleman, Matthew S."
 PIS = [
-    "Blaes, O",
-    "Ravikov, R",
-    "Burrows, A",
-    "Thompson, T",
+    "Blaes, Omer",
+    "Rafikov, Roman",
+    "Burrows, Adam",
+    "Thompson, Todd",
 ]
 
 # Your ORCID is the most precise filter.
