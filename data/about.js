@@ -17,8 +17,10 @@ window.PAGE = {
       "label": "Bio",
       "type": "text",
       "paragraphs": [
-        "Placeholder bio — replace with your own. I'm a computational astrophysicist who works where astrophysics meets high-performance computing: writing, running, and speeding up large simulations.",
-        "These days I'm a *Performance Tuning Analyst*, helping researchers make their codes run faster on modern clusters. See the [Computing](computing.html) page for more."
+        "I’m an astrophysicist by training, and these days I work as the *Performance Tuning Analyst* in Princeton University’s Research Computing department. I help researchers get more out of modern supercomputers by tuning scientific codes and supporting their work on Princeton’s clusters.",
+        "You can learn more about my current work on the [Computing](computing.html) page.",
+        "My [research](research.html) background is in computational astrophysics, especially the magnetohydrodynamics of accretion disks and other astrophysical flows. I’ve worked across theoretical astrophysics and numerical simulation, studying topics including cataclysmic variables, compact objects, core-collapse supernovae, and computational methods.",
+        "Visit my [research](research.html) page for more details, and my [publications](publications.html) page for a list of my work.",
       ]
     },
     {
@@ -29,8 +31,8 @@ window.PAGE = {
         {
           "when": "Present",
           "title": "Performance Tuning Analyst",
-          "where": "Your institution",
-          "text": "Profiling and optimizing research software on HPC systems."
+          "where": "Princeton University",
+          "text": "HPC facilitation and support for researchers using Princeton’s supercomputing clusters, specializing in profiling and optimizing research software on HPC systems."
         },
         {
           "when": "Year – Year",

@@ -325,6 +325,12 @@
 
 .section-intro { color: var(--text-muted); }
 
+/* The About-page bio is justified; hyphenation keeps the word gaps even. */
+#bio .prose {
+  text-align: justify;
+  hyphens: auto;
+}
+
 /* ---------- Cards ---------- */
 .cards {
   display: grid;
