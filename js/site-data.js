@@ -63,12 +63,13 @@ window.SITE = {
      A page picks its photo with  "image": "<name>"  in its data file
      (or "rotate" to use the rotation list above).
 
-     To add a real photo (see README.md for resize commands):
-       1. Save two sizes in img/:  <name>-1280.webp/.jpg and <name>-2560.webp/.jpg
-       2. Add an entry like this one:
+     To add a real photo, put it in img/tierN/, run tools/make_sizes.py, then
+     tools/make_image_registry.py (see README.md). Real photos live in js/images.js;
+     an entry looks like this:
 
        "jwst-carina": {
-         src: "img/jwst-carina",               // path WITHOUT the -1280.webp ending
+         src: "img/tier1/jwst-carina",         // path WITHOUT the _2pow<nn>.jpg ending
+         ladder: [[8, 356], [9, 713], [10, 1426]],  // [n, real width] for each <src>_2pow<nn>.jpg
          alt: "Glowing gas cliffs of the Carina Nebula studded with young stars",
          title: "Cosmic Cliffs, Carina Nebula",
          credit: "NASA, ESA, CSA, STScI",

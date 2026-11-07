@@ -109,35 +109,27 @@ The photos in `img/tier1/`, `img/tier2/`, … are registered in `js/images.js`, 
 - **`psf` rotation** is `0` everywhere; the telescope is guessed from the credit.
 - **Weights** default to 2 for `tier1` and 1 for `tier2`.
 
-## Add a real space photo (the older `-1280` / `-2560` way)
+## Add a real space photo
 
 1. **Check the license on the image's release page.**
    - NASA-produced images are generally public domain, but credit is expected.
    - ESA/Webb, ESA/Hubble, and NOIRLab/Rubin images are **CC BY 4.0**, so attribution is required.
    - Never use agency logos.
-2. **Make two sizes** (on macOS, `sips` is built in):
+2. **Put the original JPG in `img/tier1/`** (or `tier2`, …), then make the size ladder:
    ```sh
-   sips -Z 1280 original.jpg --out img/jwst-carina-1280.jpg
-   sips -Z 2560 original.jpg --out img/jwst-carina-2560.jpg
-   # WebP versions (needs `brew install webp`):
-   cwebp -q 80 img/jwst-carina-1280.jpg -o img/jwst-carina-1280.webp
-   cwebp -q 80 img/jwst-carina-2560.jpg -o img/jwst-carina-2560.webp
+   python3 tools/make_sizes.py --plan                  # dry run
+   python3 tools/make_sizes.py --space oklab           # average in Oklab (also: srgb [default], cielab)
    ```
-   Aim for 400 KB or less for the 1280 version.
-3. **Add an entry** to `images` in `js/site-data.js`. There's a commented example there. Include `alt` text, `credit`, `license`, and `sourceUrl`; the credit is shown on the photo.
-4. **Add its name to `rotation`** in `js/site-data.js` so it joins the slideshow. You can remove the `placeholder-…` names once real photos exist.
+   (needs `pip install pillow numpy`)
+3. **Register it:** run `tools/make_image_registry.py` (it refuses to overwrite a hand-edited `js/images.js` without `--force`), or copy an existing entry in `js/images.js` by hand. Include `alt` text, `credit`, `license`, and `sourceUrl`; the credit is shown on the photo.
 
-### Optional: a ladder of exact power-of-two sizes
+Photos in `js/images.js` join the slideshow automatically (it replaces `SITE.rotation`). The `placeholder-…` starfields in `js/site-data.js` are only a fallback.
 
-`tools/make_sizes.py` makes `<name>_2pow08.jpg` … `<name>_2pow13.jpg` (width ≈ 2^n) for every JPG in `img/`, then renames each original to `<name>_native.jpg`. Each output pixel is the mean of an exact 2^k × 2^k block of source pixels. Where a side isn't divisible, the script trims or mirror-pads a few pixels at the edges (at most 1% trimmed, 0.1% padded per edge). Run `--plan` first to see what it will do.
+### The size ladder (`_2powNN`)
 
-```sh
-pip install pillow numpy
-python3 tools/make_sizes.py --plan                  # dry run
-python3 tools/make_sizes.py --space oklab           # average in Oklab (also: srgb [default], cielab)
-```
+`tools/make_sizes.py` makes `<name>_2pow08.jpg` … `<name>_2pow13.jpg` (width ≈ 2^n) for every JPG in `img/`, then renames each original to `<name>_native.jpg`. Each output pixel is the mean of an exact 2^k × 2^k block of source pixels. Where a side isn't divisible, the script trims or mirror-pads a few pixels at the edges (at most 1% trimmed, 0.1% padded per edge). With `--space oklab` or `cielab` each image is converted from its own embedded ICC profile (no profile means sRGB), averaged in that space, and converted back.
 
-With `--space oklab` or `cielab` each image is converted from its own embedded ICC profile (no profile means sRGB), averaged in that space, and converted back. These files use a different naming scheme from the `-1280`/`-2560` pair above, which is what `js/render.js` currently loads.
+This is the only naming scheme `js/render.js` loads. An entry needs `src` (the path without the `_2powNN.jpg` ending) and `ladder` (`[[n, real width], …]`; the `NN` in the filename is rounded, so the width is stored separately). An entry with a `src` but no `ladder` shows a placeholder and logs a console warning.
 
 ### How rotation works
 

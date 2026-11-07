@@ -308,6 +308,9 @@
   // One full-size photo layer: a real image, or a placeholder starfield.
   function mediaLayer(image) {
     var layer = el("div", { class: "viewscreen-layer" });
+    if (image.src && !(image.ladder && image.ladder.length)) {
+      console.warn("Image \"" + image.title + "\" has a src but no ladder (see js/images.js); showing a placeholder.");
+    }
     if (image.src && image.ladder && image.ladder.length) {
       // Size ladder from tools/make_sizes.py: <src>_2pow<nn>.jpg, each [nn, real pixel width].
       var rungs = image.ladder.map(function (r) {
@@ -320,18 +323,6 @@
           src: fallback.url,
           srcset: rungs.map(function (r) { return r.url + " " + r.width + "w"; }).join(", "),
           sizes: "(max-width: 45em) 100vw, 80vw",
-          alt: image.alt || "",
-          decoding: "async",
-        }),
-      ]));
-    } else if (image.src) {
-      var sizes = "(max-width: 45em) 100vw, 80vw";
-      layer.append(el("picture", { class: "viewscreen-media" }, [
-        el("source", { type: "image/webp", srcset: image.src + "-1280.webp 1280w, " + image.src + "-2560.webp 2560w", sizes: sizes }),
-        el("img", {
-          src: image.src + "-1280.jpg",
-          srcset: image.src + "-1280.jpg 1280w, " + image.src + "-2560.jpg 2560w",
-          sizes: sizes,
           alt: image.alt || "",
           decoding: "async",
         }),
@@ -357,11 +348,9 @@
   // outside the header. It is blurred, so a small rung is plenty.
   function backdropUrl(image) {
     if (!image || !image.src) return null;
-    if (image.ladder && image.ladder.length) {
-      var r = image.ladder.filter(function (x) { return x[1] >= 800; })[0] || image.ladder[image.ladder.length - 1];
-      return image.src + "_2pow" + String(r[0]).padStart(2, "0") + ".jpg";
-    }
-    return image.src + "-1280.jpg";
+    if (!(image.ladder && image.ladder.length)) return null;
+    var r = image.ladder.filter(function (x) { return x[1] >= 800; })[0] || image.ladder[image.ladder.length - 1];
+    return image.src + "_2pow" + String(r[0]).padStart(2, "0") + ".jpg";
   }
 
   Site.showBackdrop = function (name) {
