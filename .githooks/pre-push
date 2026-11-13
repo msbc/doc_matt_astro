@@ -1,0 +1,32 @@
+#!/bin/sh
+# Pre-push hook: run the same lint/style checks as CI (.github/workflows/checks.yml),
+# so a failing push is caught here instead of on GitHub.
+#
+#   1. build the git-ignored nojs/ pages   (tools/build_nojs.py)
+#   2. run every check                     (tools/check.py: ruff, nojs, eslint, html-validate)
+#
+# Skip it for one push with:  git push --no-verify
+# Enable it once per clone with:  git config core.hooksPath .githooks
+#
+# Note: this checks your working tree, not just the commits being pushed.
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if command -v uv >/dev/null 2>&1; then
+  # Same locked ruff/numpy/pillow that CI installs. A different active venv would only make uv warn.
+  unset VIRTUAL_ENV
+  run="uv run --locked"
+else
+  echo "pre-push: uv not found; falling back to python3 (needs ruff on PATH)." >&2
+  run="python3"
+fi
+
+echo "pre-push: running the CI checks (skip with git push --no-verify)"
+$run tools/build_nojs.py >/dev/null || {
+  echo "pre-push: tools/build_nojs.py failed; push aborted." >&2
+  exit 1
+}
+$run tools/check.py || {
+  echo "pre-push: checks failed; push aborted." >&2
+  exit 1
+}

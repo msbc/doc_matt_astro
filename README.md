@@ -104,7 +104,7 @@ The header wordmark and the navigation are plain HTML, so they still work with J
 The photos in `img/tier1/`, `img/tier2/`, … are registered in `js/images.js`, which every page loads right after `site-data.js`. It adds to `SITE.images` and replaces the placeholder `SITE.rotation`. Each entry points at the `_2powNN.jpg` ladder from `tools/make_sizes.py` (`ladder: [[n, pixels], …]`, real widths, because the `NN` in the name is rounded) and the browser picks the rung that fits the screen.
 
 `tools/make_image_registry.py` writes that file from the folders, reading credit, license and title from each photo's embedded metadata (needs `exiftool`). It refuses to overwrite a hand-edited `images.js` unless you pass `--force`. After running it, check:
-- **`credit: "TODO"`, `weight: 0`**: the photo has no embedded credit, so it is never shown. Fill in credit and license, then raise the weight.
+- **`credit: "TODO"`, `weight: 0`**: the photo has no embedded credit, so it is never shown. Fill in credit and license, then raise the weight. Put what you find in the `OVERRIDES` table at the top of `tools/make_image_registry.py` (keyed by file name; it wins over the embedded metadata), so it survives a `--force` re-run.
 - **Credits that end after the last complete name**: ESA's embedded credits are cut off at 32 characters, so the generator drops the half-cut last name (marked with a comment). The `sourceUrl` release page has the full credit.
 - **`psf` rotation** is `0` everywhere; the telescope is guessed from the credit.
 - **Weights** default to 2 for `tier1` and 1 for `tier2`.
@@ -160,6 +160,16 @@ All colors are in `css/tokens.css`.
 The **Dark mode** button remembers a visitor's choice. Picking the theme their system already uses clears that memory, so the site goes back to following the system.
 
 The site respects "reduce motion": visitors with that setting get no transitions or star twinkle.
+
+## Checks and the pre-push hook
+
+`uv run tools/check.py` runs the lint and style checks that CI runs (ruff, the `nojs/` freshness check, ESLint, html-validate). `.githooks/pre-push` runs the same checks before every `git push` (it builds `nojs/` first, as CI does) and aborts the push if one fails. Turn it on once per clone with:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Skip it for a single push with `git push --no-verify`. The hook checks your working tree, not just the commits being pushed.
 
 ## Publish on GitHub Pages
 
