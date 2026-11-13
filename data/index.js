@@ -27,7 +27,7 @@ window.PAGE = {
           "meta": "Sector 03",
           "title": "Publications",
           "href": "publications.html",
-          "text": "Refereed papers, proceedings, and software, with ADS / arXiv / DOI links."
+          "text": "Refereed papers, proceedings, and software, with SciX / arXiv / DOI links."
         },
         {
           "meta": "Sector 04",
@@ -41,7 +41,6 @@ window.PAGE = {
       "id": "status",
       "label": "Status",
       "type": "stats",
-      "intro": "Placeholder readouts — edit these in index.html.",
       "items": [
         {
           "label": "Current role",
@@ -53,12 +52,8 @@ window.PAGE = {
           "value": "Comp. Astrophysics"
         },
         {
-          "label": "Toolchain",
-          "value": "MPI · OpenMP · GPU"
-        },
-        {
           "label": "Status",
-          "value": "Nominal"
+          "value": "Under construction"
         }
       ]
     }
