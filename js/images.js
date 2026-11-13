@@ -18,22 +18,22 @@
     "50330680253-458032d203-o": {
       src: "img/tier1/50330680253-458032d203-o",
       ladder: [[8, 356], [9, 713], [10, 1426], [11, 2851], [12, 5702]],
-      alt: "",
-      title: "50330680253-458032d203-o",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
-      psf: { preset: "none", rotation: 0 },
-      weight: 0,   // tier1
+      alt: "Southern Pinwheel",
+      title: "Southern Pinwheel",
+      credit: "NASA, ESA, the Hubble Heritage Team (STScI/AURA)",
+      license: "CC BY 2.0",
+      sourceUrl: "https://www.flickr.com/photos/nasahubble/50330680253/",
+      psf: { preset: "hst", rotation: 0 },
+      weight: 2,   // tier1
     },
     "52046519794-082f96a17d-o": {
       src: "img/tier1/52046519794-082f96a17d-o",
       ladder: [[8, 244], [9, 489], [10, 977], [11, 1955]],
       alt: "Colours of the Lost Galaxy",
       title: "Colours of the Lost Galaxy",
-      credit: "ESA/Hubble & NASA",   // file metadata was cut off; last name dropped, see the release page
+      credit: "ESA/Hubble & NASA, J. Lee and the PHANGS-HST Team",   // full credit from the Flickr page; file metadata was cut off
       license: "CC BY 4.0",
-      sourceUrl: "",
+      sourceUrl: "https://www.flickr.com/photos/nasahubble/52046519794/",
       psf: { preset: "hst", rotation: 0 },
       weight: 2,   // tier1
     },
@@ -75,33 +75,33 @@
     "Hubble_NGC1827_1_flat_FINAL": {
       src: "img/tier1/Hubble_NGC1827_1_flat_FINAL",
       ladder: [[8, 254], [9, 507], [10, 1014], [11, 2028]],
-      alt: "",
-      title: "Hubble_NGC1827_1_flat_FINAL",
-      credit: "TODO",
+      alt: "Edge-on spiral galaxy NGC 1827",
+      title: "Spiral's Edge",
+      credit: "NASA, ESA, Michael Jones (California Institute of Technology). Image Processing: Gladys Kober (NASA/Catholic University of America)",
       license: "",
-      sourceUrl: "",
+      sourceUrl: "https://www.nasa.gov/image-detail/hubble-ngc1827-1-flat-final/",
       psf: { preset: "hst", rotation: 0 },
-      weight: 0,   // tier1
+      weight: 2,   // tier1
     },
     "Im1-10k": {
       src: "img/tier1/Im1-10k",
       ladder: [[8, 312], [9, 625], [10, 1250], [11, 2500], [12, 5000]],
-      alt: "",
-      title: "Im1-10k",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
-      psf: { preset: "none", rotation: 0 },
-      weight: 0,   // tier1
+      alt: "Southern part of the Virgo Cluster, seen by Rubin Observatory",
+      title: "The Cosmic Treasure Chest",
+      credit: "NSF–DOE Vera C. Rubin Observatory",
+      license: "CC BY 4.0",
+      sourceUrl: "https://noirlab.edu/public/images/noirlab2521a/",
+      psf: { preset: "rubin", rotation: 0 },
+      weight: 2,   // tier1
     },
     "STScI-01HMBZKXD4KQSVV76MNVPXN9RX": {
       src: "img/tier1/STScI-01HMBZKXD4KQSVV76MNVPXN9RX",
       ladder: [[8, 243], [9, 485], [10, 970]],
       alt: "NGC 4254 (Webb Image)",
       title: "NGC 4254 (Webb Image)",
-      credit: "NASA, ESA, CSA, STScI, J. Lee, T. Williams (Oxford), J. DePasquale and A. Pagan",
-      license: "",
-      sourceUrl: "",
+      credit: "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team",
+      license: "CC BY 4.0",
+      sourceUrl: "https://esawebb.org/images/weic2403o/",
       psf: { preset: "jwst", rotation: 0 },
       weight: 2,   // tier1
     },
@@ -112,7 +112,7 @@
       title: "Carina Nebula Jets (NIRCam Narrowband Filters)",
       credit: "NASA, ESA, CSA, and STScI, J. DePasquale (STScI)",
       license: "CC BY 4.0",
-      sourceUrl: "",
+      sourceUrl: "https://esawebb.org/images/carinanebula3/",
       object: "carina",
       psf: { preset: "jwst", rotation: 0 },
       weight: 2,   // tier1
@@ -120,33 +120,33 @@
     "hubble-hptau-wfc3-1-flat-finalok": {
       src: "img/tier1/hubble-hptau-wfc3-1-flat-finalok",
       ladder: [[8, 256], [9, 512], [10, 1025], [11, 2050]],
-      alt: "",
-      title: "hubble-hptau-wfc3-1-flat-finalok",
-      credit: "TODO",
+      alt: "Triple-star system HP Tau in a reflection nebula",
+      title: "Hubble Views the Dawn of a Sun-like Star",
+      credit: "NASA, ESA, G. Duchene (Universite de Grenoble I). Image Processing: Gladys Kober (NASA/Catholic University of America)",
       license: "",
-      sourceUrl: "",
+      sourceUrl: "https://science.nasa.gov/image-detail/hubble-hptau-wfc3-1-flat-finalok",
       psf: { preset: "hst", rotation: 0 },
-      weight: 0,   // tier1
+      weight: 2,   // tier1
     },
     "hubble-trantula-potw2305a-jpg": {
       src: "img/tier1/hubble-trantula-potw2305a-jpg",
       ladder: [[8, 247], [9, 495], [10, 989], [11, 1979]],
-      alt: "",
-      title: "hubble-trantula-potw2305a-jpg",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
+      alt: "Exploring a Turbulent Tarantula",
+      title: "Exploring a Turbulent Tarantula",
+      credit: "ESA/Hubble & NASA, C. Murray, E. Sabbi",
+      license: "CC BY 4.0",
+      sourceUrl: "https://esahubble.org/images/potw2305a/",
       psf: { preset: "hst", rotation: 0 },
-      weight: 0,   // tier1
+      weight: 2,   // tier1
     },
     "lm4-Trifid-10k": {
       src: "img/tier1/lm4-Trifid-10k",
       ladder: [[8, 312], [9, 625], [10, 1250], [11, 2500], [12, 5000]],
       alt: "Trifid and Lagoon Nebulae",
       title: "Trifid and Lagoon Nebulae",
-      credit: "RubinObs/NOIRLab/SLAC/NSF/DOE/AURA",
+      credit: "NSF–DOE Vera C. Rubin Observatory",
       license: "CC BY 4.0",
-      sourceUrl: "",
+      sourceUrl: "https://rubinobservatory.org/gallery/image-releases/rubin-first-look/trifid-lagoon",
       psf: { preset: "rubin", rotation: 0 },
       weight: 2,   // tier1
     },
@@ -157,7 +157,7 @@
       title: "Pillars of Creation (NIRCam and MIRI Composite Image)",
       credit: "NASA, ESA, CSA, STScI, J. DePasquale (STScI), A. Pagan (STScI), A. M. Koekemoer (STScI)",
       license: "CC BY 4.0",
-      sourceUrl: "",
+      sourceUrl: "https://esawebb.org/images/pillarsofcreation_composite/",
       object: "pillars",
       psf: { preset: "jwst", rotation: 0 },
       weight: 2,   // tier1
@@ -382,23 +382,23 @@
     "37893980612-307324af83-o": {
       src: "img/tier2/37893980612-307324af83-o",
       ladder: [[8, 246], [9, 491], [10, 982], [11, 1964], [12, 3928]],
-      alt: "",
-      title: "37893980612-307324af83-o",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
-      psf: { preset: "none", rotation: 0 },
+      alt: "Bubble Nebula",
+      title: "Bubble Nebula",
+      credit: "NASA, ESA, Hubble Heritage Team",
+      license: "CC BY 4.0",
+      sourceUrl: "https://esahubble.org/images/heic1608a/",
+      psf: { preset: "hst", rotation: 0 },
       weight: 0,   // tier2
     },
     "46646118205-6b0b936128-o": {
       src: "img/tier2/46646118205-6b0b936128-o",
       ladder: [[8, 246], [9, 493], [10, 986], [11, 1972], [12, 3943]],
-      alt: "",
-      title: "46646118205-6b0b936128-o",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
-      psf: { preset: "none", rotation: 0 },
+      alt: "Colliding galaxy pair Arp 273, the \"Rose\"",
+      title: "Colliding Galaxy Pair Arp 273, the \"Rose\"",
+      credit: "NASA, ESA and the Hubble Heritage Team (STScI/AURA)",
+      license: "CC BY 4.0",
+      sourceUrl: "https://esahubble.org/images/heic1107a/",
+      psf: { preset: "hst", rotation: 0 },
       weight: 0,   // tier2
     },
     "jupiter-auroras1": {
@@ -408,7 +408,7 @@
       title: "Jupiter Showcases Auroras, Hazes (NIRCam Closeup)",
       credit: "NASA, ESA, Jupiter ERS Team; image processing by Judy Schmidt",
       license: "CC BY 4.0",
-      sourceUrl: "",
+      sourceUrl: "https://esawebb.org/images/jupiter-auroras1/",
       psf: { preset: "hst", rotation: 0 },
       weight: 1,   // tier2
     },
@@ -426,14 +426,14 @@
     "ring-nebula": {
       src: "img/tier2/ring-nebula",
       ladder: [[8, 199], [9, 397], [10, 795], [11, 1589]],
-      alt: "",
-      title: "ring-nebula",
-      credit: "TODO",
-      license: "",
-      sourceUrl: "",
+      alt: "Hubble image of the Ring Nebula (Messier 57)",
+      title: "Hubble image of the Ring Nebula (Messier 57)",
+      credit: "NASA, ESA, and C. Robert O'Dell (Vanderbilt University)",
+      license: "CC BY 4.0",
+      sourceUrl: "https://esahubble.org/images/heic1310a/",
       object: "ring",
-      psf: { preset: "none", rotation: 0 },
-      weight: 0,   // tier2
+      psf: { preset: "hst", rotation: 0 },
+      weight: 1,   // tier2
     },
     "weic2301d": {
       src: "img/tier2/weic2301d",

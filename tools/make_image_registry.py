@@ -8,6 +8,8 @@ For every <stem>_native.jpg in img/tier1, img/tier2, ... this collects
   * credit / license / title from the photo's embedded metadata (read with
     exiftool).  Nothing is invented: a photo with no embedded credit gets
     credit "TODO" and weight 0, so it never shows until you fill it in.
+  * the OVERRIDES table below, which wins over the embedded metadata. Put researched
+    credits there (not only in images.js) so --force keeps them.
 
 The output is meant to be hand-edited afterwards (PSF rotation, credits, weights),
 so an existing js/images.js is NOT overwritten unless you pass --force.
@@ -39,6 +41,127 @@ OBJECTS = {
     "ring": ["weic2320b", "ring-nebula"],
 }
 OBJECT_OF = {stem: obj for obj, stems in OBJECTS.items() for stem in stems}
+
+# Hand-researched metadata for photos whose embedded metadata is missing or cut off
+# (Flickr downloads, for instance). Anything listed here wins over what exiftool finds, so
+# re-running this script with --force keeps it. Keys are the file stem; allowed fields:
+#   title, alt, credit, license, sourceUrl, psf (preset name), weight, note (comment shown
+#   after the credit in images.js).
+# An entry with a credit gets the tier's default weight unless it sets `weight` itself.
+OVERRIDES = {
+    # NASA Hubble on Flickr, "Southern Pinwheel" (M83); not found on esahubble.org.
+    "50330680253-458032d203-o": {
+        "title": "Southern Pinwheel",
+        "alt": "Southern Pinwheel",
+        "credit": "NASA, ESA, the Hubble Heritage Team (STScI/AURA)",
+        "license": "CC BY 2.0",
+        "sourceUrl": "https://www.flickr.com/photos/nasahubble/50330680253/",
+        "psf": "hst",
+    },
+    # "A Lost Galaxy" (NGC 4535) on NASA Hubble's Flickr; the file's embedded credit is cut off.
+    "52046519794-082f96a17d-o": {
+        "credit": "ESA/Hubble & NASA, J. Lee and the PHANGS-HST Team",
+        "sourceUrl": "https://www.flickr.com/photos/nasahubble/52046519794/",
+        "note": "full credit from the Flickr page; file metadata was cut off",
+    },
+    # Bubble Nebula, esahubble.org heic1608a (ESA/Hubble images are CC BY 4.0).
+    "37893980612-307324af83-o": {
+        "title": "Bubble Nebula",
+        "alt": "Bubble Nebula",
+        "credit": "NASA, ESA, Hubble Heritage Team",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esahubble.org/images/heic1608a/",
+        "psf": "hst",
+        "weight": 0,
+    },
+    # Tarantula Nebula, esahubble.org potw2305a. The page also lists "Acknowledgement: Y.-H. Chu",
+    # which is dropped here like every other acknowledgement line (see credit_of).
+    "hubble-trantula-potw2305a-jpg": {
+        "title": "Exploring a Turbulent Tarantula",
+        "alt": "Exploring a Turbulent Tarantula",
+        "credit": "ESA/Hubble & NASA, C. Murray, E. Sabbi",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esahubble.org/images/potw2305a/",
+        "psf": "hst",
+    },
+    # "Spiral's Edge" (NGC 1827), NASA image page; the page states no license.
+    "Hubble_NGC1827_1_flat_FINAL": {
+        "title": "Spiral's Edge",
+        "alt": "Edge-on spiral galaxy NGC 1827",
+        "credit": "NASA, ESA, Michael Jones (California Institute of Technology). "
+        "Image Processing: Gladys Kober (NASA/Catholic University of America)",
+        "sourceUrl": "https://www.nasa.gov/image-detail/hubble-ngc1827-1-flat-final/",
+        "psf": "hst",
+    },
+    # "Hubble Views the Dawn of a Sun-like Star" (HP Tau), NASA image page; no license stated.
+    "hubble-hptau-wfc3-1-flat-finalok": {
+        "title": "Hubble Views the Dawn of a Sun-like Star",
+        "alt": "Triple-star system HP Tau in a reflection nebula",
+        "credit": "NASA, ESA, G. Duchene (Universite de Grenoble I). "
+        "Image Processing: Gladys Kober (NASA/Catholic University of America)",
+        "sourceUrl": "https://science.nasa.gov/image-detail/hubble-hptau-wfc3-1-flat-finalok",
+        "psf": "hst",
+    },
+    # Rubin First Look, southern Virgo Cluster: noirlab.edu noirlab2521a, 97943 x 51536 px (the TIFF's
+    # embedded original size). Credit is the caption's wording on rubinobservatory.org's page for this
+    # image; the Rubin media policy (CC BY 4.0) otherwise asks for "NSF-DOE Vera C. Rubin
+    # Observatory/NOIRLab/SLAC/AURA".
+    "Im1-10k": {
+        "title": "The Cosmic Treasure Chest",
+        "alt": "Southern part of the Virgo Cluster, seen by Rubin Observatory",
+        "credit": "NSF–DOE Vera C. Rubin Observatory",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://noirlab.edu/public/images/noirlab2521a/",
+        "psf": "rubin",
+    },
+    # Rubin First Look, Trifid and Lagoon Nebulae (NOIRLab noirlab2521b, which could not be read).
+    # Credit is the caption wording on rubinobservatory.org's page; see Im1-10k for the policy note.
+    "lm4-Trifid-10k": {
+        "credit": "NSF–DOE Vera C. Rubin Observatory",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://rubinobservatory.org/gallery/image-releases/rubin-first-look/trifid-lagoon",
+    },
+    # Webb images whose esawebb.org page matches the local file's size and credit. The pages state no
+    # license themselves; esawebb.org/copyright says ESA/Webb images are CC BY 4.0.
+    "carinanebula3": {  # 14570 x 8452 px, released 15 Dec 2022
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esawebb.org/images/carinanebula3/",
+    },
+    "pillarsofcreation_composite": {  # 7130 x 6675 px, released 30 Nov 2022
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esawebb.org/images/pillarsofcreation_composite/",
+    },
+    "jupiter-auroras1": {  # 1646 x 1561 px, released 22 Aug 2022
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esawebb.org/images/jupiter-auroras1/",
+    },
+    # NGC 4254, esawebb.org weic2403o (3473 x 1941 px, same as the file). The file's embedded credit
+    # names J. DePasquale and A. Pagan (STScI's version); this is ESA's credit line for the page.
+    "STScI-01HMBZKXD4KQSVV76MNVPXN9RX": {
+        "credit": "NASA, ESA, CSA, STScI, J. Lee (STScI), T. Williams (Oxford), PHANGS Team",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esawebb.org/images/weic2403o/",
+    },
+    # Hubble's Ring Nebula (M57), esahubble.org heic1310a, 3179 x 3179 px like the local file.
+    "ring-nebula": {
+        "title": "Hubble image of the Ring Nebula (Messier 57)",
+        "alt": "Hubble image of the Ring Nebula (Messier 57)",
+        "credit": "NASA, ESA, and C. Robert O'Dell (Vanderbilt University)",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esahubble.org/images/heic1310a/",
+        "psf": "hst",
+    },
+    # Arp 273, "A rose made of galaxies", esahubble.org heic1107a.
+    "46646118205-6b0b936128-o": {
+        "title": 'Colliding Galaxy Pair Arp 273, the "Rose"',
+        "alt": 'Colliding galaxy pair Arp 273, the "Rose"',
+        "credit": "NASA, ESA and the Hubble Heritage Team (STScI/AURA)",
+        "license": "CC BY 4.0",
+        "sourceUrl": "https://esahubble.org/images/heic1107a/",
+        "psf": "hst",
+        "weight": 0,
+    },
+}
 
 
 def exif(paths):
@@ -115,25 +238,29 @@ def build(tier_dirs, max_n, weights):
                 with Image.open(p) as im:
                     ladder.append([n, im.width])
             credit = credit_for_site(md)
-            known = bool(credit)
             title = clean(md.get("Title") or md.get("Headline") or md.get("ObjectName") or "").lstrip("*").strip()
-            entries.append(
-                {
-                    "name": stem,
-                    "src": f"img/{tier.name}/{stem}",
-                    "ladder": ladder,
-                    "alt": title,
-                    "title": title or stem,
-                    "credit": credit or "TODO",
-                    "license": license_of(md),
-                    "sourceUrl": source_url(stem, md),
-                    "object": OBJECT_OF.get(stem, ""),
-                    "psf": psf_preset(stem, md),
-                    "trimmed": credit_truncated(md),
-                    "weight": weights.get(tier.name, 1) if known else 0,
-                    "tier": tier.name,
-                }
-            )
+            entry = {
+                "name": stem,
+                "src": f"img/{tier.name}/{stem}",
+                "ladder": ladder,
+                "alt": title,
+                "title": title or stem,
+                "credit": credit or "TODO",
+                "license": license_of(md),
+                "sourceUrl": source_url(stem, md),
+                "object": OBJECT_OF.get(stem, ""),
+                "psf": psf_preset(stem, md),
+                "trimmed": credit_truncated(md),
+                "note": "",
+                "tier": tier.name,
+            }
+            override = OVERRIDES.get(stem, {})
+            entry.update(override)
+            if "credit" in override:
+                entry["trimmed"] = False  # a hand-written credit is complete
+            known = entry["credit"] != "TODO"
+            entry["weight"] = override.get("weight", weights.get(tier.name, 1) if known else 0)
+            entries.append(entry)
     return entries
 
 
@@ -169,7 +296,13 @@ def render(entries):
         out.append(f"      title: {js_string(e['title'])},")
         out.append(
             f"      credit: {js_string(e['credit'])},"
-            + ("   // file metadata was cut off; last name dropped, see the release page" if e["trimmed"] else "")
+            + (
+                f"   // {e['note']}"
+                if e["note"]
+                else "   // file metadata was cut off; last name dropped, see the release page"
+                if e["trimmed"]
+                else ""
+            )
         )
         out.append(f"      license: {js_string(e['license'])},")
         out.append(f"      sourceUrl: {js_string(e['sourceUrl'])},")
