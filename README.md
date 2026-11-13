@@ -19,7 +19,7 @@ js/site-data.js       ← settings shared by every page (name, footer, images, s
 css/tokens.css        ← every color, font, and size (light + dark themes)
 css/*.css             ← layout and component styles
 js/*.js               ← the code that builds pages from the data/ files (no need to touch for text edits)
-img/                  ← background photos
+img/tier1, tier2, …   ← background photos: the resized _2powNN.jpg files are committed; masters (img/originals/, *_native.jpg) are git-ignored
 cv/Matt_Coleman_CV.pdf ← put your CV here (the "CV" button links to it)
 ```
 
@@ -101,9 +101,11 @@ The header wordmark and the navigation are plain HTML, so they still work with J
 
 ## Background photos (`js/images.js`)
 
+**What is in git.** Only the resized `<name>_2powNN.jpg` files (about 200 MB in all) are committed, and they are what GitHub Pages serves. The full-resolution masters stay on your machine (and in Dropbox): `img/originals/` (source TIFFs/PNGs), the `<name>_native.jpg` files that `make_sizes.py` keeps as its source, and any `.tif`/`.psd`/`.fits` file. All of these are in `.gitignore`. Because the resized files are committed, regenerating them adds to the repository history every time, so `make_sizes.py` never overwrites an existing file unless you pass `--overwrite`.
+
 The photos in `img/tier1/`, `img/tier2/`, … are registered in `js/images.js`, which every page loads right after `site-data.js`. It adds to `SITE.images` and replaces the placeholder `SITE.rotation`. Each entry points at the `_2powNN.jpg` ladder from `tools/make_sizes.py` (`ladder: [[n, pixels], …]`, real widths, because the `NN` in the name is rounded) and the browser picks the rung that fits the screen.
 
-`tools/make_image_registry.py` writes that file from the folders, reading credit, license and title from each photo's embedded metadata (needs `exiftool`). It refuses to overwrite a hand-edited `images.js` unless you pass `--force`. After running it, check:
+`tools/make_image_registry.py` writes that file from the folders, reading credit, license and title from each photo's embedded metadata (needs `exiftool`). It reads the metadata from the `_native.jpg` masters, which are not in git, so run it on the machine that has them. It refuses to overwrite a hand-edited `images.js` unless you pass `--force`. After running it, check:
 - **`credit: "TODO"`, `weight: 0`**: the photo has no embedded credit, so it is never shown. Fill in credit and license, then raise the weight. Put what you find in the `OVERRIDES` table at the top of `tools/make_image_registry.py` (keyed by file name; it wins over the embedded metadata), so it survives a `--force` re-run.
 - **Credits that end after the last complete name**: ESA's embedded credits are cut off at 32 characters, so the generator drops the half-cut last name (marked with a comment). The `sourceUrl` release page has the full credit.
 - **`psf` rotation** is `0` everywhere; the telescope is guessed from the credit.
@@ -117,17 +119,18 @@ The photos in `img/tier1/`, `img/tier2/`, … are registered in `js/images.js`, 
    - Never use agency logos.
 2. **Put the original JPG in `img/tier1/`** (or `tier2`, …), then make the size ladder:
    ```sh
-   python3 tools/make_sizes.py --plan                  # dry run
-   python3 tools/make_sizes.py --space oklab           # average in Oklab (also: srgb [default], cielab)
+   uv run tools/make_sizes.py --plan                  # dry run
+   uv run tools/make_sizes.py --space oklab           # average in Oklab (also: srgb [default], cielab)
    ```
-   (needs `pip install pillow numpy`)
+   (needs numpy and pillow, which `uv run` installs from `pyproject.toml`)
 3. **Register it:** run `tools/make_image_registry.py` (it refuses to overwrite a hand-edited `js/images.js` without `--force`), or copy an existing entry in `js/images.js` by hand. Include `alt` text, `credit`, `license`, and `sourceUrl`; the credit is shown on the photo.
+4. **Commit the new `_2powNN.jpg` files** together with the `js/images.js` change. The `_native.jpg` stays local.
 
 Photos in `js/images.js` join the slideshow automatically (it replaces `SITE.rotation`). The `placeholder-…` starfields in `js/site-data.js` are only a fallback.
 
 ### The size ladder (`_2powNN`)
 
-`tools/make_sizes.py` makes `<name>_2pow08.jpg` … `<name>_2pow13.jpg` (width ≈ 2^n) for every JPG in `img/`, then renames each original to `<name>_native.jpg`. Each output pixel is the mean of an exact 2^k × 2^k block of source pixels. Where a side isn't divisible, the script trims or mirror-pads a few pixels at the edges (at most 1% trimmed, 0.1% padded per edge). With `--space oklab` or `cielab` each image is converted from its own embedded ICC profile (no profile means sRGB), averaged in that space, and converted back.
+`tools/make_sizes.py` makes `<name>_2pow08.jpg` … `<name>_2pow13.jpg` (width ≈ 2^n) for every JPG directly inside each `img/tier*` folder (or inside the folder(s) you name with `--dir`, which you can repeat), then renames each original to `<name>_native.jpg`. Re-running is safe: sizes whose file already exists are skipped (the plan marks them `exists`), and an existing `_native.jpg` is never replaced. Pass `--overwrite` to regenerate them, for example after changing `--space` or `--quality`. Each output pixel is the mean of an exact 2^k × 2^k block of source pixels. Where a side isn't divisible, the script trims or mirror-pads a few pixels at the edges (at most 1% trimmed, 0.1% padded per edge). With `--space oklab` or `cielab` each image is converted from its own embedded ICC profile (no profile means sRGB), averaged in that space, and converted back.
 
 This is the only naming scheme `js/render.js` loads. An entry needs `src` (the path without the `_2powNN.jpg` ending) and `ladder` (`[[n, real width], …]`; the `NN` in the filename is rounded, so the width is stored separately). An entry with a `src` but no `ladder` shows a placeholder and logs a console warning.
 
@@ -179,7 +182,7 @@ The site itself has nothing to build. The one exception is `nojs/` (the text-onl
    - Name it **`<username>.github.io`** and the site appears at `https://<username>.github.io/`.
    - Any other name puts it at `https://<username>.github.io/<repo>/`.
 2. In the repository, open **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions**. (Not "Deploy from a branch": that would publish the files without running the build, so `nojs/` would be missing.)
-3. Push to `main`. The **Deploy site** workflow runs (see the repository's **Actions** tab) and publishes the site. You can also run it by hand from there.
+3. Push to `main`. The **Deploy site** workflow runs (see the repository's **Actions** tab) and publishes the site. You can also run it by hand from there. The first push carries all the committed background photos (about 200 MB); no single file is near GitHub's 100 MB limit.
 
 Also included:
 - `404.html`, a themed "Signal Lost" page that GitHub Pages shows for missing URLs.

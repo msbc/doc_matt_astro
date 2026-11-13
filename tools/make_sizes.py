@@ -28,6 +28,9 @@ For the Lab spaces each image is first converted from its own embedded ICC
 profile (matrix/TRC RGB profiles; no profile is taken as sRGB) to linear XYZ,
 averaged in strips, then converted back to the same profile.
 
+By default every img/tier* folder of the repository is scanned;
+use --dir (repeatable) to process other folders instead.
+
 Needs Pillow and numpy:  pip install pillow numpy
 """
 
@@ -426,9 +429,14 @@ def describe(L):
 
 
 def main():
-    default_dir = Path(__file__).resolve().parent.parent / "img"
+    img = Path(__file__).resolve().parent.parent / "img"
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--dir", type=Path, default=default_dir, help="folder with the source JPGs (default: ../img)")
+    ap.add_argument(
+        "--dir",
+        type=Path,
+        action="append",
+        help="folder with the source JPGs; repeat for several (default: every ../img/tier* folder)",
+    )
     ap.add_argument(
         "--space",
         choices=("srgb", "oklab", "cielab"),
@@ -450,8 +458,13 @@ def main():
     ap.add_argument("--no-rename", action="store_true", help="do not append _native to the originals")
     args = ap.parse_args()
 
+    folders = args.dir or sorted(p for p in img.glob("tier*") if p.is_dir())
+    if not folders:
+        ap.error(f"no {img}/tier* folders found; pass --dir")
+    found = [s for folder in folders for s in sources(folder)]
+
     jobs = []
-    for path, base, renamed in sources(args.dir):
+    for path, base, renamed in found:
         with Image.open(path) as im:
             w, h = im.size
         levels = plan_levels(w, h, args.min_n, args.max_n, args.trim_pct, args.pad_permille)
