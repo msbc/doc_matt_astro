@@ -1,6 +1,3 @@
-# Ignore all images for now
-img/
-
 # ---------------------------------------------------------------------
 # Image masters: kept locally (and in Dropbox), never committed.
 #   - img/originals/ holds the source TIFFs/PNGs (~7 GB).
