@@ -13,8 +13,10 @@ used per level (never both at once):
 
 The cheapest feasible strategy (fewest source pixels removed + added, then
 fewest added) is chosen.  Files are written as <stem>_2powNN.jpg and, at the
-end, each original <stem>.jpg is renamed <stem>_native.jpg.  Re-running is safe
-(existing outputs are overwritten, <stem>_native.jpg is used as the source).
+end, each original <stem>.jpg is renamed <stem>_native.jpg.  Re-running is safe:
+<stem>_native.jpg is used as the source, and files that already exist are left
+alone (listed as "exists") unless you pass --overwrite.  That matters because
+the resized files are committed, so regenerating them grows the git history.
 
 The averaging itself can be done in different colour spaces (--space):
 
@@ -440,6 +442,11 @@ def main():
     ap.add_argument("--max-n", type=int, default=13)
     ap.add_argument("--trim-pct", type=int, default=1, help="max global trim, %% of a side (total)")
     ap.add_argument("--pad-permille", type=int, default=1, help="max global pad, per mille of a side per edge")
+    ap.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="regenerate output files that already exist (default: skip them, and never replace an existing _native file)",
+    )
     ap.add_argument("--no-rename", action="store_true", help="do not append _native to the originals")
     args = ap.parse_args()
 
@@ -448,21 +455,25 @@ def main():
         with Image.open(path) as im:
             w, h = im.size
         levels = plan_levels(w, h, args.min_n, args.max_n, args.trim_pct, args.pad_permille)
-        jobs.append((path, base, renamed, w, h, levels))
-
-    for path, base, renamed, w, h, levels in jobs:
+        # Without --overwrite, only the levels whose output file is missing get (re)made.
+        todo = [L for L in levels if args.overwrite or not (path.parent / f"{base}_2pow{L.n:02d}.jpg").exists()]
+        jobs.append((path, base, renamed, w, h, todo))
         print(f"{path.name}  {w}x{h}")
         for L in levels:
-            print("   " + describe(L))
+            print(("   " if L in todo else "   exists  ") + describe(L))
     total = sum(len(j[5]) for j in jobs)
+    skipped = sum(1 for j in jobs if not j[5])
     print(
-        f"\n{len(jobs)} sources, {total} downsampled files, "
+        f"\n{len(jobs)} sources, {total} files to write"
+        f"{'' if args.overwrite else ' (existing ones kept; --overwrite to redo them)'}, "
         f"{sum(L.added > 0 for j in jobs for L in j[5])} levels with generated pixels, averaging in {args.space}"
     )
+    if skipped:
+        print(f"{skipped} sources have nothing to do")
     if args.plan:
         return 0
 
-    work = sorted(jobs, key=lambda j: -j[3] * j[4])
+    work = sorted((j for j in jobs if j[5]), key=lambda j: -j[3] * j[4])
     failed = []
     with ProcessPoolExecutor(max_workers=args.jobs) as pool:
         futs = {pool.submit(process, p, b, lv, args.quality, args.space): (p, lv) for p, b, _r, _w, _h, lv in work}
@@ -479,7 +490,13 @@ def main():
         for path, base, renamed, *_ in jobs:
             if path in failed or renamed:
                 continue
-            os.rename(path, path.with_name(base + NATIVE + ".jpg"))
+            native = path.with_name(base + NATIVE + ".jpg")
+            if native.exists() and not args.overwrite:
+                print(
+                    f"kept {path.name}: {native.name} already exists (use --overwrite to replace it)", file=sys.stderr
+                )
+                continue
+            os.rename(path, native)
     return 1 if failed else 0
 
 
