@@ -9,39 +9,44 @@
 window.PAGE = {
   "title": "Research",
   "kicker": "Sector 02 · Science operations",
-  "intro": "Using large simulations to ask astrophysical questions. (Placeholder text — replace with your own.)",
+  "intro": "Using large simulations to ask astrophysical questions about accretion disks, compact objects, and core-collapse supernovae.",
   "image": "rotate",
   "sections": [
     {
       "id": "threads",
       "label": "Research Threads",
       "type": "cards",
-      "intro": "One card per research thread. Add an \"href\" to link a card to its papers.",
       "items": [
         {
           "meta": "Thread 01",
-          "title": "Research thread one",
-          "text": "Placeholder: the question, the method, and the main result in two sentences.",
+          "title": "Accretion disks",
+          "text": "How magnetized turbulence, convection, and waves transport angular momentum in accretion disks, including those of cataclysmic variables and their boundary layers.",
           "tags": [
-            "Simulation",
-            "Theory"
+            "MHD",
+            "Convection",
+            "Boundary layers",
+            "Cataclysmic variables"
           ],
           "href": "publications.html"
         },
         {
           "meta": "Thread 02",
-          "title": "Research thread two",
-          "text": "Placeholder: a second line of work.",
+          "title": "Core-collapse supernovae & compact objects",
+          "text": "Three-dimensional supernova explosions, the kicks and spins of newborn neutron stars, gravitational-wave signatures, and the nucleosynthesis and early evolution of magnetars.",
           "tags": [
-            "Numerics"
+            "Supernovae",
+            "Neutron stars",
+            "High-energy astrophysics"
           ]
         },
         {
           "meta": "Thread 03",
-          "title": "Research thread three",
-          "text": "Placeholder: a third line of work.",
+          "title": "Computational methods",
+          "text": "Numerical tools for astrophysical fluids: equation-of-state modules and Riemann solvers for realistic, non-ideal fluids.",
           "tags": [
-            "Observations"
+            "Numerics",
+            "Microphysics",
+            "Radiative transfer"
           ]
         }
       ]
@@ -53,19 +58,22 @@ window.PAGE = {
       "items": [
         {
           "title": "Simulation codes",
-          "text": "Placeholder: the codes you develop or use.",
+          "text": "I’ve contributed to the open-source MHD code Athena++ and ported the radiation-hydrodynamics code Fornax to GPUs using OpenMP. My simulations have run on national supercomputers, including TACC Frontera and the XSEDE systems Stampede2 and Comet.",
           "tags": [
+            "Athena++",
+            "Fornax",
             "C++",
-            "Fortran",
             "Python"
           ]
         },
         {
           "title": "Analysis",
-          "text": "Placeholder: how you turn simulation output into science.",
+          "text": "I still need to put stuff here.",
           "tags": [
-            "NumPy",
-            "yt"
+            "Python",
+            "Numpy",
+            "Matplotlib",
+            "Jupyter"
           ]
         }
       ]
@@ -75,7 +83,7 @@ window.PAGE = {
       "label": "Collaborations",
       "type": "text",
       "paragraphs": [
-        "Placeholder: groups, collaborations, and people you work with."
+        "My work has been shaped by long collaborations with Omer Blaes (UC Santa Barbara), Roman Rafikov (Cambridge), Adam Burrows (Princeton), and Todd Thompson (Ohio State), along with many coauthors on the [publications](publications.html) page."
       ]
     }
   ]
