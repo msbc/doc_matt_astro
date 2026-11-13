@@ -35,16 +35,34 @@ window.PAGE = {
           "text": "HPC facilitation and support for researchers using Princeton’s supercomputing clusters, specializing in profiling and optimizing research software on HPC systems."
         },
         {
-          "when": "Year – Year",
-          "title": "Postdoctoral Researcher",
-          "where": "Institution",
-          "text": "Placeholder: what you worked on."
+          "when": "Jan 2023 – May 2024",
+          "title": "Teaching Assistant Professor / Lecturer",
+          "where": "Stevens Institute of Technology",
+          "text": "Mentored master’s theses and created content for astrophysics courses."
         },
         {
-          "when": "Year",
-          "title": "Ph.D., Astrophysics",
-          "where": "University",
-          "text": "Thesis: *Placeholder thesis title*."
+          "when": "Aug 2020 – Jan 2023",
+          "title": "Postdoctoral Researcher",
+          "where": "Princeton University",
+          "text": "Simulations of core-collapse supernovae and of the kicks and spins of newborn neutron stars."
+        },
+        {
+          "when": "Sep 2017 – Aug 2020",
+          "title": "Postdoctoral Researcher",
+          "where": "Institute for Advanced Study",
+          "text": "Accretion-disk boundary layers, and numerical methods for astrophysical fluids, including equation-of-state tools for Athena++."
+        },
+        {
+          "when": "June 2017",
+          "title": "Ph.D., Physics",
+          "where": "University of California, Santa Barbara",
+          "text": "Dissertation: *Convection Affects Magnetic Turbulence in White Dwarf Accretion Disks*. Adviser: Omer Blaes."
+        },
+        {
+          "when": "June 2011",
+          "title": "B.S., Physics (Summa Cum Laude)",
+          "where": "University of California, Santa Cruz",
+          "text": "Thesis: *The Evolution of Supernovae Embedded in Stellar Groups*. Adviser: Enrico Ramirez-Ruiz."
         }
       ]
     },
@@ -55,27 +73,30 @@ window.PAGE = {
       "items": [
         {
           "title": "Astrophysical simulation",
-          "text": "Placeholder: numerical methods and the physics they capture.",
+          "text": "Numerical simulations of accretion disks, core-collapse supernovae, and other astrophysical flows, and the numerical methods and microphysics behind them.",
           "tags": [
             "Hydrodynamics",
-            "MHD"
+            "MHD",
+            "Accretion disks",
+            "Supernovae"
           ]
         },
         {
           "title": "Performance engineering",
-          "text": "Placeholder: making scientific code fast and scalable.",
+          "text": "Making scientific code fast and scalable, for example porting the radiation-hydrodynamics code *Fornax* to GPUs with OpenMP.",
           "tags": [
             "Profiling",
-            "GPUs"
+            "GPUs",
+            "OpenMP"
           ]
         },
         {
-          "title": "Astrophotography",
-          "text": "Placeholder: the pictures that make it all worth it.",
+          "title": "Finishing this website",
+          "text": "I’m still working on this site, and I hope to add more content soon.",
           "tags": [
-            "HST",
-            "JWST",
-            "Rubin"
+            "HTML",
+            "CSS",
+            "JavaScript"
           ]
         }
       ]
