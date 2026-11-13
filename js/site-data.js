@@ -27,9 +27,9 @@ window.SITE = {
     note: "© 2026 Matt Coleman",
     readout: "NODE: HPC-01 // STATUS: NOMINAL",
     links: [
-      { label: "Email",  href: "mailto:you@example.edu" },
+      { label: "Email",  href: "mailto:matthew.s.b.coleman@gmail.com" },
       { label: "GitHub", href: "https://github.com/msbc" },
-      { label: "ORCID",  href: "https://orcid.org/0000-0000-0000-0000" },
+      { label: "ORCID",  href: "https://orcid.org/0000-0001-5939-5957" },
     ],
   },
 
