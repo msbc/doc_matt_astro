@@ -164,7 +164,9 @@ class Builder:
             links = []
             if pub.get("scix"):
                 scix = str(pub["scix"])
-                links.append(("SciX", scix if re.match(r"https?:", scix) else "https://scixplorer.org/abs/" + scix + "/abstract"))
+                links.append(
+                    ("SciX", scix if re.match(r"https?:", scix) else "https://scixplorer.org/abs/" + scix + "/abstract")
+                )
             if pub.get("arxiv"):
                 links.append(("arXiv", "https://arxiv.org/abs/" + str(pub["arxiv"])))
             if pub.get("doi"):
