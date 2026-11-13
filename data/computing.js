@@ -17,8 +17,9 @@ window.PAGE = {
       "label": "Performance Tuning Analyst",
       "type": "text",
       "paragraphs": [
-        "Placeholder — describe your current role here. As a Performance Tuning Analyst at *Your institution*, I work with researchers to profile their codes, find the bottlenecks, and make them faster on our clusters.",
-        "Typical work: profiling CPU and GPU codes, improving parallel scaling, porting to accelerators, and teaching good performance habits."
+        "Since May 2024 I’ve been a Performance Tuning Analyst at Princeton University, where I work with researchers to profile their codes, find the bottlenecks, and make them faster on our clusters.",
+        "Typical work: profiling CPU and GPU codes, improving parallel scaling, porting to accelerators, and teaching good performance habits.",
+        "The rest of this page is a placeholder for now — I’ll add more content soon."
       ]
     },
     {
@@ -70,7 +71,7 @@ window.PAGE = {
         {
           "meta": "Teach",
           "title": "Consulting & training",
-          "text": "Placeholder: one-on-one consultations, office hours, and workshops."
+          "text": "Workshops and user groups for Princeton researchers, from introductory MPI to colormaps for figures."
         }
       ]
     },
@@ -108,10 +109,11 @@ window.PAGE = {
         {
           "title": "Languages",
           "tags": [
-            "C",
+            "Python",
             "C++",
-            "Fortran",
-            "Python"
+            "Rust",
+            "C",
+            "Fortran"
           ]
         },
         {
@@ -173,10 +175,22 @@ window.PAGE = {
       "type": "timeline",
       "items": [
         {
-          "when": "Year",
-          "title": "Placeholder workshop or talk",
-          "where": "Venue",
-          "text": "Placeholder: one line on what it covered."
+          "when": "Sep – Nov 2026",
+          "title": "PrincetonPy: Python User Group",
+          "where": "Princeton Research Computing",
+          "text": "A monthly [Python user group](https://researchcomputing.princeton.edu/learn/user-groups/python) that I run with Mattie Niznik."
+        },
+        {
+          "when": "Oct 20, 2026",
+          "title": "Introduction to Parallel Programming with MPI",
+          "where": "Fall Break Parallel Programming & GPU Bootcamp, Princeton Research Computing",
+          "text": "Hands-on introduction to distributed-memory parallel computing: environment management, point-to-point and collective communication. [Slides](https://researchcomputing.princeton.edu/document/7026) from the [bootcamp](https://researchcomputing.princeton.edu/fall-break-2026-parallel-programming-gpu-bootcamp)."
+        },
+        {
+          "when": "Oct 15, 2026",
+          "title": "How to Make Your Figures Pop: Colormaps",
+          "where": "Princeton Research Computing",
+          "text": "Workshop co-taught with Carolina Roe-Raymond on choosing colormaps for research figures."
         }
       ]
     },
@@ -186,10 +200,10 @@ window.PAGE = {
       "type": "cards",
       "items": [
         {
-          "meta": "Repository",
-          "title": "Project name",
-          "href": "https://github.com/msbc",
-          "text": "Placeholder: a tool, patch, or contribution worth showing."
+          "meta": "Contribution",
+          "title": "Athena++",
+          "href": "https://github.com/PrincetonUniversity/athena",
+          "text": "Open-source MHD code. I wrote its general equation-of-state module and an exact Riemann solver for general equations of state."
         }
       ]
     }
