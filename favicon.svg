@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Doc. Matt Astro</title>
+  <defs>
+    <radialGradient id="glow" cx="40" cy="40" r="17" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#66CCFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#66CCFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- deep-space background -->
+  <rect width="64" height="64" rx="12" fill="#05070B"/>
+  <!-- LCARS elbow: orange corner, gold lower segment -->
+  <path d="M6 43 V26 A20 20 0 0 1 26 6 H58 V18 H26 A8 8 0 0 0 18 26 V43 Z" fill="#FF7700"/>
+  <path d="M6 47 H18 V58 H6 Z" fill="#FFAA44"/>
+  <!-- star with diffraction spikes -->
+  <circle cx="40" cy="40" r="17" fill="url(#glow)"/>
+  <path d="M40 21 Q40 40 59 40 Q40 40 40 59 Q40 40 21 40 Q40 40 40 21 Z" fill="#99CCFF"/>
+  <circle cx="40" cy="40" r="4.5" fill="#FFFFFF"/>
+</svg>
